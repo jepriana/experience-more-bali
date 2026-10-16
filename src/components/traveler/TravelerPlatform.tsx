@@ -8,6 +8,7 @@ import {
   createWhatsAppInquiryUrl
 } from '@/data/curatedPartners';
 import { usePartners } from '@/context/PartnersContext';
+import type { ItineraryResponse } from '@/lib/schemas';
 import { useLanguage } from '@/context/LanguageContext';
 import {
   Compass,
@@ -45,7 +46,7 @@ export function TravelerPlatform({ onSelectPartnerForPartnerView }: TravelerPlat
   ]);
   const [customNotes, setCustomNotes] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [adventureResult, setAdventureResult] = useState<any>(null);
+  const [adventureResult, setAdventureResult] = useState<ItineraryResponse | null>(null);
 
   // Directory filter state
   const [selectedCategory, setSelectedCategory] = useState<PartnerCategory | 'All'>('All');
@@ -315,7 +316,7 @@ export function TravelerPlatform({ onSelectPartnerForPartnerView }: TravelerPlat
                 <h4 className="text-sm font-bold uppercase tracking-wider text-stone-400">
                   {t.traveler.journeySequence}
                 </h4>
-                {adventureResult.days?.map((day: any, idx: number) => {
+                {adventureResult.days?.map((day, idx) => {
                   const partner = partners.find((p) => p.id === day.partnerId);
                   return (
                     <div

@@ -1,6 +1,13 @@
 import { NextResponse } from 'next/server';
-import { Type } from '@google/genai';
-import { getGemini, GEMINI_38_FLASH, DEFAULT_GEMINI_MODEL, isGeminiConfigured } from '@/lib/gemini';
+import {
+  getGemini,
+  DEFAULT_GEMINI_MODEL,
+  FALLBACK_GEMINI_MODEL,
+  FAST_GENERATION_CONFIG,
+  logGeminiUsage,
+  isGeminiConfigured
+} from '@/lib/gemini';
+import { PartnerProfileSchema, toGeminiSchema, safeJson } from '@/lib/schemas';
 
 export async function POST(request: Request) {
   try {
@@ -63,116 +70,37 @@ PARTNER SUBMISSION:
 ${factsList.map((fact, i) => `${i + 1}. ${fact}`).join('\n')}
 `;
 
-        const structuredSchema = {
-          type: Type.OBJECT,
-          properties: {
-            headline: {
-              type: Type.STRING,
-              description: 'Punchy, evocative headline grounded in the business facts'
-            },
-            polishedDescription: {
-              type: Type.STRING,
-              description:
-                'Compelling 2-paragraph narrative experience description strictly grounded in the supplied facts with zero fabricated claims'
-            },
-            shortHighlight: {
-              type: Type.STRING,
-              description: 'A 1-sentence concise highlight for cards and quick discovery'
-            },
-            socialMediaCopy: {
-              type: Type.OBJECT,
-              properties: {
-                hook: { type: Type.STRING, description: 'Attention-grabbing hook line for social feeds' },
-                caption: {
-                  type: Type.STRING,
-                  description: 'Engaging storytelling body text with appropriate emojis and clear call to action'
-                },
-                hashtags: {
-                  type: Type.ARRAY,
-                  items: { type: Type.STRING },
-                  description: 'Relevant hashtags including #ExperienceMoreBali2027'
-                }
-              },
-              required: ['hook', 'caption', 'hashtags']
-            },
-            gamifiedMission: {
-              type: Type.OBJECT,
-              properties: {
-                missionTitle: { type: Type.STRING, description: 'Title of the hands-on quest for visitors/kids' },
-                missionDescription: {
-                  type: Type.STRING,
-                  description: 'Detailed interactive challenge travelers can complete on-site'
-                },
-                badgeTitle: { type: Type.STRING, description: 'Achievement badge title awarded upon completion' }
-              },
-              required: ['missionTitle', 'missionDescription', 'badgeTitle']
-            },
-            groundingChecklist: {
-              type: Type.ARRAY,
-              items: {
-                type: Type.OBJECT,
-                properties: {
-                  rawFact: { type: Type.STRING, description: 'The original supplied fact' },
-                  howItWasUsed: {
-                    type: Type.STRING,
-                    description: 'Specific explanation of how this fact was reflected without fabrication'
-                  },
-                  verified: { type: Type.BOOLEAN, description: 'True confirming the claim is grounded' }
-                },
-                required: ['rawFact', 'howItWasUsed', 'verified']
-              },
-              description: 'Exhaustive verification list auditing every single raw fact provided'
-            },
-            suggestedFamilyTags: {
-              type: Type.ARRAY,
-              items: { type: Type.STRING },
-              description: '3 to 5 family-friendly descriptive tags'
-            }
-          },
-          required: [
-            'headline',
-            'polishedDescription',
-            'shortHighlight',
-            'socialMediaCopy',
-            'gamifiedMission',
-            'groundingChecklist',
-            'suggestedFamilyTags'
-          ]
+        const structuredSchema = toGeminiSchema(PartnerProfileSchema);
+
+        const config = {
+          ...FAST_GENERATION_CONFIG,
+          responseMimeType: 'application/json',
+          responseJsonSchema: structuredSchema
         };
 
         let response;
+        let usedModel = DEFAULT_GEMINI_MODEL;
+        const startedAt = Date.now();
         try {
-          response = await ai.models.generateContent({
-            model: GEMINI_38_FLASH,
-            contents: prompt,
-            config: {
-              responseMimeType: 'application/json',
-              responseSchema: structuredSchema,
-              temperature: 0.2
-            }
-          });
+          response = await ai.models.generateContent({ model: DEFAULT_GEMINI_MODEL, contents: prompt, config });
         } catch (modelErr) {
-          console.warn(`Primary model ${GEMINI_38_FLASH} failed, attempting ${DEFAULT_GEMINI_MODEL}:`, modelErr);
-          response = await ai.models.generateContent({
-            model: DEFAULT_GEMINI_MODEL,
-            contents: prompt,
-            config: {
-              responseMimeType: 'application/json',
-              responseSchema: structuredSchema,
-              temperature: 0.2
-            }
-          });
+          console.warn(`Primary model ${DEFAULT_GEMINI_MODEL} failed, attempting ${FALLBACK_GEMINI_MODEL}:`, modelErr);
+          usedModel = FALLBACK_GEMINI_MODEL;
+          response = await ai.models.generateContent({ model: FALLBACK_GEMINI_MODEL, contents: prompt, config });
+        }
+        logGeminiUsage('partner-assistant', usedModel, startedAt, response.usageMetadata);
+
+        const result = PartnerProfileSchema.safeParse(safeJson(response.text));
+        if (!result.success) {
+          // Falls into the catch below -> honest fallback with isAiGenerated: false
+          throw new Error(`Schema validation failed: ${JSON.stringify(result.error.issues)}`);
         }
 
-        let rawText = response.text || '';
-        rawText = rawText.replace(/```json/gi, '').replace(/```/g, '').trim();
-
-        const parsed = JSON.parse(rawText);
         return NextResponse.json({
           success: true,
           isAiGenerated: true,
-          model: GEMINI_38_FLASH,
-          data: parsed
+          model: usedModel,
+          data: result.data
         });
       } catch (geminiError: unknown) {
         console.error('Gemini Partner Assistant API error:', geminiError);
