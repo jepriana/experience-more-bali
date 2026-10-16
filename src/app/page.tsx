@@ -1,16 +1,17 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { Navbar, ActiveTab } from '@/components/Navbar';
 import { TravelerPlatform } from '@/components/traveler/TravelerPlatform';
 import { PartnerPlatform } from '@/components/partner/PartnerPlatform';
 import { QrMemoryPlatform } from '@/components/phygital/QrMemoryPlatform';
 import { PartnersProvider } from '@/context/PartnersContext';
 import { LanguageProvider, useLanguage } from '@/context/LanguageContext';
+import { SessionStateProvider, useSessionState } from '@/context/SessionStateContext';
 import { Sparkles, ShieldCheck } from 'lucide-react';
 
 function MainApp() {
-  const [activeTab, setActiveTab] = useState<ActiveTab>('traveler');
+  const [activeTab, setActiveTab] = useSessionState<ActiveTab>('app.activeTab', 'traveler');
   const [partnerFocusId, setPartnerFocusId] = useState<string | undefined>(undefined);
   const { t } = useLanguage();
 
@@ -19,6 +20,9 @@ function MainApp() {
     setActiveTab('partner');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+
+  // The partner jump is a one-time event: clear it once PartnerPlatform has loaded it
+  const handleInitialPartnerApplied = useCallback(() => setPartnerFocusId(undefined), []);
 
   const handleNavigateToTraveler = () => {
     setActiveTab('traveler');
@@ -39,6 +43,7 @@ function MainApp() {
           <PartnerPlatform
             initialPartnerId={partnerFocusId}
             onNavigateToTraveler={handleNavigateToTraveler}
+            onInitialPartnerApplied={handleInitialPartnerApplied}
           />
         )}
         {activeTab === 'phygital' && <QrMemoryPlatform />}
@@ -80,7 +85,9 @@ export default function Home() {
   return (
     <LanguageProvider>
       <PartnersProvider>
-        <MainApp />
+        <SessionStateProvider>
+          <MainApp />
+        </SessionStateProvider>
       </PartnersProvider>
     </LanguageProvider>
   );

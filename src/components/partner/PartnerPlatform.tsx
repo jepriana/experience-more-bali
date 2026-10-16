@@ -8,6 +8,7 @@ import {
   createWhatsAppInquiryUrl
 } from '@/data/curatedPartners';
 import { usePartners } from '@/context/PartnersContext';
+import { useSessionState } from '@/context/SessionStateContext';
 import type { PartnerProfile } from '@/lib/schemas';
 import { useLanguage } from '@/context/LanguageContext';
 import {
@@ -34,19 +35,25 @@ import {
 interface PartnerPlatformProps {
   initialPartnerId?: string;
   onNavigateToTraveler?: () => void;
+  /** Called once the initialPartnerId has been loaded into the form, so it isn't re-applied on every remount. */
+  onInitialPartnerApplied?: () => void;
 }
 
-export function PartnerPlatform({ initialPartnerId, onNavigateToTraveler }: PartnerPlatformProps) {
+export function PartnerPlatform({
+  initialPartnerId,
+  onNavigateToTraveler,
+  onInitialPartnerApplied
+}: PartnerPlatformProps) {
   const { partners, addPartner, isCustomPartner, totalCustomCount } = usePartners();
   const { language, t } = useLanguage();
 
   // Form Inputs
-  const [businessName, setBusinessName] = useState('');
-  const [category, setCategory] = useState<PartnerCategory>('Destination');
-  const [location, setLocation] = useState('Tejakula Coastal Village, Buleleng, North Bali');
-  const [priceTier, setPriceTier] = useState<'$' | '$$' | '$$$' | '$$$$'>('$$');
-  const [whatsappNumber, setWhatsappNumber] = useState('+6281239981240');
-  const [rawFacts, setRawFacts] = useState<string[]>([
+  const [businessName, setBusinessName] = useSessionState('partner.businessName', '');
+  const [category, setCategory] = useSessionState<PartnerCategory>('partner.category', 'Destination');
+  const [location, setLocation] = useSessionState('partner.location', 'Tejakula Coastal Village, Buleleng, North Bali');
+  const [priceTier, setPriceTier] = useSessionState<'$' | '$$' | '$$$' | '$$$$'>('partner.priceTier', '$$');
+  const [whatsappNumber, setWhatsappNumber] = useSessionState('partner.whatsappNumber', '+6281239981240');
+  const [rawFacts, setRawFacts] = useSessionState<string[]>('partner.rawFacts', [
     'Operated by 8 traditional artisanal salt-farming families using ancient coconut trunk evaporation troughs (Palung).',
     'Certified microplastic-free pure sea salt harvested solely using solar drying and volcanic black sand filtration.',
     '100% of profits are shared directly with the local village Banjar community welfare fund.',
@@ -54,11 +61,11 @@ export function PartnerPlatform({ initialPartnerId, onNavigateToTraveler }: Part
   ]);
 
   // UI state
-  const [isLoading, setIsLoading] = useState(false);
-  const [generatedResult, setGeneratedResult] = useState<PartnerProfile | null>(null);
+  const [isLoading, setIsLoading] = useSessionState('partner.isLoading', false, { persist: false });
+  const [generatedResult, setGeneratedResult] = useSessionState<PartnerProfile | null>('partner.generatedResult', null);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
-  const [publishedSuccess, setPublishedSuccess] = useState(false);
-  const [lastPublishedPartner, setLastPublishedPartner] = useState<CuratedPartner | null>(null);
+  const [publishedSuccess, setPublishedSuccess] = useSessionState('partner.publishedSuccess', false);
+  const [lastPublishedPartner, setLastPublishedPartner] = useSessionState<CuratedPartner | null>('partner.lastPublishedPartner', null);
 
   // If initialPartnerId is passed, load that partner's data into the form
   useEffect(() => {
@@ -73,9 +80,23 @@ export function PartnerPlatform({ initialPartnerId, onNavigateToTraveler }: Part
         setRawFacts(existing.verifiedFacts);
         setGeneratedResult(null);
         setPublishedSuccess(false);
+        // One-shot: tell the page it's applied, so returning to this tab keeps the user's edits
+        onInitialPartnerApplied?.();
       }
     }
-  }, [initialPartnerId, partners]);
+  }, [
+    initialPartnerId,
+    partners,
+    onInitialPartnerApplied,
+    setBusinessName,
+    setCategory,
+    setLocation,
+    setPriceTier,
+    setWhatsappNumber,
+    setRawFacts,
+    setGeneratedResult,
+    setPublishedSuccess
+  ]);
 
   const handleAddFactField = () => {
     setRawFacts([...rawFacts, '']);
