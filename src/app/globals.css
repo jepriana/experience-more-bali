@@ -17,6 +17,91 @@ body {
   color: var(--foreground);
 }
 
+/* ───────── Streaming AI UI ───────── */
+
+/* New blocks (day cards, sections) glide in as the model writes them */
+@keyframes stream-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.stream-in {
+  animation: stream-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Typing cursor at the end of the field being written */
+@keyframes caret-blink {
+  0%,
+  45% {
+    opacity: 1;
+  }
+  55%,
+  100% {
+    opacity: 0;
+  }
+}
+.stream-caret {
+  display: inline-block;
+  width: 2px;
+  height: 1em;
+  margin-left: 2px;
+  vertical-align: -0.15em;
+  border-radius: 1px;
+  background: #34d399;
+  box-shadow: 0 0 8px #34d39999;
+  animation: caret-blink 1s steps(1) infinite;
+}
+
+/* Placeholder lines for parts not written yet */
+@keyframes shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+.shimmer {
+  background: linear-gradient(90deg, #292524 0%, #44403c 50%, #292524 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.6s ease-in-out infinite;
+}
+
+/* Soft glow around the panel while the AI is working */
+@keyframes thinking-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(52, 211, 153, 0);
+    border-color: rgba(6, 95, 70, 0.6);
+  }
+  50% {
+    box-shadow: 0 0 24px 0 rgba(52, 211, 153, 0.12);
+    border-color: rgba(16, 185, 129, 0.6);
+  }
+}
+.thinking-glow {
+  animation: thinking-glow 2.4s ease-in-out infinite;
+}
+
+/* Keep the newest reasoning line visible while older lines fade out at the top */
+.fade-top-mask {
+  mask-image: linear-gradient(to bottom, transparent 0, black 28px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stream-in,
+  .shimmer,
+  .thinking-glow,
+  .stream-caret {
+    animation: none;
+  }
+}
+
 /* Hide scrollbar for Chrome, Safari and Opera */
 .no-scrollbar::-webkit-scrollbar {
   display: none;

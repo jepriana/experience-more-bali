@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   CuratedPartner,
   PartnerCategory,
@@ -10,6 +10,9 @@ import {
 import { usePartners } from '@/context/PartnersContext';
 import { useSessionState } from '@/context/SessionStateContext';
 import type { PartnerProfile } from '@/lib/schemas';
+import type { StreamResultMeta } from '@/lib/streamProtocol';
+import { useAiStream, type DeepPartial } from '@/lib/useAiStream';
+import { AiSourceBadge, Skeleton, StreamErrorBanner, StreamText, revealOutput } from '@/components/ai/StreamingUi';
 import { useLanguage } from '@/context/LanguageContext';
 import {
   Store,
@@ -61,8 +64,15 @@ export function PartnerPlatform({
   ]);
 
   // UI state
-  const [isLoading, setIsLoading] = useSessionState('partner.isLoading', false, { persist: false });
   const [generatedResult, setGeneratedResult] = useSessionState<PartnerProfile | null>('partner.generatedResult', null);
+  // where the last kit came from (live AI vs offline demo)
+  const [resultMeta, setResultMeta] = useSessionState<StreamResultMeta | null>('partner.resultMeta', null);
+  const [formError, setFormError] = useState<string | null>(null);
+
+  // Live stream: keeps running (and visible) across tab switches
+  const stream = useAiStream<PartnerProfile>('partner');
+  const isLoading = stream.isStreaming;
+  const resultRef = useRef<HTMLDivElement>(null);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [publishedSuccess, setPublishedSuccess] = useSessionState('partner.publishedSuccess', false);
   const [lastPublishedPartner, setLastPublishedPartner] = useSessionState<CuratedPartner | null>('partner.lastPublishedPartner', null);
@@ -213,51 +223,75 @@ export function PartnerPlatform({
     setTimeout(() => setCopiedKey(null), 2500);
   };
 
-  const handleGenerateAssistant = async () => {
+  const handleGenerateAssistant = () => {
+    if (isLoading) return;
+    // Inline validation instead of browser alert() popups
     if (!businessName.trim()) {
-      alert(language === 'id' ? 'Silakan masukkan Nama Bisnis.' : 'Please enter a Business Name.');
+      setFormError(t.stream.nameRequired);
       return;
     }
     const cleanFacts = rawFacts.filter((f) => f.trim().length > 0);
     if (cleanFacts.length === 0) {
-      alert(
-        language === 'id'
-          ? 'Harap sertakan setidaknya satu fakta terverifikasi tentang bisnis Anda.'
-          : 'Please provide at least one verified fact about your business.'
-      );
+      setFormError(t.stream.factRequired);
       return;
     }
-
-    setIsLoading(true);
+    setFormError(null);
     setPublishedSuccess(false);
-    try {
-      const res = await fetch('/api/partner-assistant', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: businessName,
-          category,
-          location,
-          priceTier,
-          whatsappInquiryNumber: whatsappNumber,
-          rawFacts: cleanFacts,
-          language
-        })
-      });
 
-      const json = await res.json();
-      if (json.data) {
-        setGeneratedResult(json.data);
-      } else {
-        alert(json.error || 'Failed to generate profile.');
+    // Bring the output into view (below the form on phones, or scrolled under the header) so the stream is seen
+    revealOutput(resultRef.current);
+
+    void stream.start(
+      '/api/partner-assistant',
+      {
+        name: businessName,
+        category,
+        location,
+        priceTier,
+        whatsappInquiryNumber: whatsappNumber,
+        rawFacts: cleanFacts,
+        language
+      },
+      (final) => {
+        setGeneratedResult(final.data);
+        setResultMeta({ isAiGenerated: final.isAiGenerated, model: final.model, fallbackReason: final.fallbackReason });
       }
-    } catch (err) {
-      console.error('Failed to generate assistant kit:', err);
-      alert('An error occurred while contacting the Gemini Partner Assistant.');
-    } finally {
-      setIsLoading(false);
-    }
+    );
   };
+
+  // While streaming, render the half-written kit; afterwards the validated result.
+  const view: DeepPartial<PartnerProfile> | null = isLoading ? (stream.partial ?? {}) : generatedResult;
+  const isActive = (path: string) => stream.activePath === path;
+
+  // Which of the 4 output sections the model is writing now (schema order)
+  const partnerSteps = [
+    t.stream.partnerStepProfile,
+    t.stream.partnerStepSocial,
+    t.stream.partnerStepMission,
+    t.stream.partnerStepAudit
+  ];
+  const activeSection = (() => {
+    const section = stream.activePath?.split('.')[0];
+    switch (section) {
+      case 'socialMediaCopy':
+        return 1;
+      case 'gamifiedMission':
+        return 2;
+      case 'groundingChecklist':
+      case 'suggestedFamilyTags':
+        return 3;
+      default:
+        return 0;
+    }
+  })();
+  const partnerStatus = !stream.activePath
+    ? t.stream.partnerStatusStarting
+    : [
+        t.stream.partnerStatusProfile,
+        t.stream.partnerStatusSocial,
+        t.stream.partnerStatusMission,
+        t.stream.partnerStatusAudit
+      ][activeSection];
 
   const handlePublishToEcosystem = () => {
     if (!generatedResult) return;
@@ -415,7 +449,10 @@ export function PartnerPlatform({
             <input
               type="text"
               value={businessName}
-              onChange={(e) => setBusinessName(e.target.value)}
+              onChange={(e) => {
+                setBusinessName(e.target.value);
+                setFormError(null);
+              }}
               placeholder={t.partner.placeholderBusinessName}
               className="w-full bg-stone-800 border border-stone-700 text-stone-100 placeholder-stone-500 rounded-xl px-3.5 py-2.5 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500"
             />
@@ -532,11 +569,18 @@ export function PartnerPlatform({
             </div>
           </div>
 
+          {/* Inline validation message */}
+          {formError && (
+            <p className="text-xs text-red-300 bg-red-950/40 border border-red-800/50 rounded-xl px-3 py-2 stream-in" role="alert">
+              {formError}
+            </p>
+          )}
+
           {/* Action Button */}
           <button
             onClick={handleGenerateAssistant}
             disabled={isLoading}
-            className="w-full py-3.5 px-4 rounded-xl font-bold text-xs bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white shadow-lg shadow-emerald-950/50 flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50"
+            className="w-full py-3.5 px-4 rounded-xl font-bold text-xs bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white shadow-lg shadow-emerald-950/50 flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-[0.99] disabled:opacity-60 disabled:cursor-wait"
           >
             {isLoading ? (
               <>
@@ -552,33 +596,76 @@ export function PartnerPlatform({
           </button>
         </div>
 
-        {/* Right Output Studio & Publish Section */}
-        <div className="lg:col-span-7 space-y-6">
-          {generatedResult ? (
+        {/* Right Output Studio — rendered live while the kit streams in */}
+        <div ref={resultRef} className="lg:col-span-7 space-y-6">
+          {stream.state.phase === 'error' && stream.state.error && (
+            <StreamErrorBanner
+              title={t.stream.errorTitle}
+              message={stream.state.error}
+              retryLabel={t.stream.retry}
+              dismissLabel={t.stream.dismiss}
+              onRetry={handleGenerateAssistant}
+              onDismiss={stream.dismissError}
+            />
+          )}
+
+          {view ? (
             <div className="space-y-6">
-              {/* Top Action Bar with Publish to Ecosystem Button */}
-              <div className="bg-stone-900 border border-emerald-700/60 rounded-2xl p-4 sm:p-5 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4 bg-gradient-to-r from-stone-900 to-emerald-950/40">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-emerald-950 border border-emerald-500/60 text-emerald-400 flex items-center justify-center font-bold text-sm">
-                    AI
+              {/* Top bar: live progress while writing, Publish once complete */}
+              <div
+                className={`border rounded-2xl p-4 sm:p-5 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4 bg-gradient-to-r from-stone-900 to-emerald-950/40 ${
+                  isLoading ? 'thinking-glow' : 'border-emerald-700/60'
+                }`}
+              >
+                <div className="flex items-center gap-3 w-full sm:w-auto">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-950 border border-emerald-500/60 text-emerald-400 flex items-center justify-center font-bold text-sm shrink-0">
+                    {isLoading ? <Sparkles className="w-5 h-5 animate-pulse" /> : 'AI'}
                   </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-bold text-white">{t.partner.kitReady}</span>
-                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-300 border border-emerald-800 font-mono">
-                        gemini-3.8-flash
-                      </span>
-                    </div>
-                    <p className="text-[11px] text-stone-400">
-                      {t.partner.kitSubtitle}
-                    </p>
+                  <div className="min-w-0 flex-1">
+                    {isLoading ? (
+                      <>
+                        <span key={partnerStatus} className="text-xs font-bold text-white block stream-in" role="status" aria-live="polite">
+                          {partnerStatus}
+                        </span>
+                        {/* 4-step progress */}
+                        <div className="flex items-center gap-1.5 mt-1.5">
+                          {partnerSteps.map((label, i) => (
+                            <div key={label} className="flex items-center gap-1.5">
+                              <span
+                                className={`text-[10px] px-2 py-0.5 rounded-full border transition-colors duration-500 ${
+                                  i < activeSection
+                                    ? 'bg-emerald-600 border-emerald-500 text-white'
+                                    : i === activeSection
+                                      ? 'bg-emerald-950 border-emerald-500 text-emerald-300'
+                                      : 'bg-stone-900 border-stone-700 text-stone-500'
+                                }`}
+                              >
+                                {i < activeSection && <Check className="w-2.5 h-2.5 inline mr-0.5 -mt-0.5" />}
+                                {label}
+                              </span>
+                              {i < partnerSteps.length - 1 && <span className="w-2 h-px bg-stone-700" />}
+                            </div>
+                          ))}
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="text-xs font-bold text-white">{t.partner.kitReady}</span>
+                          <AiSourceBadge meta={resultMeta} liveLabel={t.stream.liveAi} offlineLabel={t.stream.offlineDemo} />
+                        </div>
+                        <p className="text-[11px] text-stone-400">{t.partner.kitSubtitle}</p>
+                      </>
+                    )}
                   </div>
                 </div>
 
                 {/* Publish to Ecosystem Button */}
                 <button
                   onClick={handlePublishToEcosystem}
-                  className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-stone-950 font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-emerald-950/60 transition-all cursor-pointer whitespace-nowrap"
+                  disabled={isLoading}
+                  title={isLoading ? t.stream.publishLocked : undefined}
+                  className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-stone-950 font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-emerald-950/60 transition-all cursor-pointer whitespace-nowrap active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-emerald-500"
                 >
                   <Globe className="w-4 h-4" />
                   <span>{t.partner.btnPublish}</span>
@@ -586,54 +673,55 @@ export function PartnerPlatform({
               </div>
 
               {/* 1. Polished Partner Profile & Experience Description */}
-              <div className="bg-stone-900 border border-stone-800 rounded-2xl p-6 shadow-xl space-y-4">
+              <div className="bg-stone-900 border border-stone-800 rounded-2xl p-6 shadow-xl space-y-4 stream-in">
                 <div className="flex items-center justify-between border-b border-stone-800 pb-3">
                   <div className="flex items-center gap-2">
                     <span className="w-6 h-6 rounded-lg bg-emerald-950 border border-emerald-800 text-emerald-400 flex items-center justify-center text-xs font-bold">
                       1
                     </span>
                     <div>
-                      <h4 className="text-sm font-bold text-white">
-                        {t.partner.section1Title}
-                      </h4>
-                      <p className="text-[11px] text-stone-400">
-                        {t.partner.section1Desc}
-                      </p>
+                      <h4 className="text-sm font-bold text-white">{t.partner.section1Title}</h4>
+                      <p className="text-[11px] text-stone-400">{t.partner.section1Desc}</p>
                     </div>
                   </div>
-                  <button
-                    onClick={() =>
-                      handleCopy(
-                        `${generatedResult.headline}\n\n${generatedResult.polishedDescription}`,
-                        'profile'
-                      )
-                    }
-                    className="p-1.5 rounded-lg bg-stone-800 hover:bg-stone-700 text-stone-300 hover:text-white transition-colors cursor-pointer text-xs flex items-center gap-1"
-                  >
-                    {copiedKey === 'profile' ? (
-                      <Check className="w-3.5 h-3.5 text-emerald-400" />
-                    ) : (
-                      <Copy className="w-3.5 h-3.5" />
-                    )}
-                    <span>{copiedKey === 'profile' ? t.partner.copiedBtn : t.partner.copyProfileBtn}</span>
-                  </button>
+                  {!isLoading && (
+                    <button
+                      onClick={() => handleCopy(`${view.headline}\n\n${view.polishedDescription}`, 'profile')}
+                      className="p-1.5 rounded-lg bg-stone-800 hover:bg-stone-700 text-stone-300 hover:text-white transition-colors cursor-pointer text-xs flex items-center gap-1"
+                    >
+                      {copiedKey === 'profile' ? (
+                        <Check className="w-3.5 h-3.5 text-emerald-400" />
+                      ) : (
+                        <Copy className="w-3.5 h-3.5" />
+                      )}
+                      <span>{copiedKey === 'profile' ? t.partner.copiedBtn : t.partner.copyProfileBtn}</span>
+                    </button>
+                  )}
                 </div>
 
                 <div className="space-y-3">
-                  <h3 className="text-base font-extrabold text-emerald-300">
-                    "{generatedResult.headline}"
-                  </h3>
-                  <p className="text-xs text-stone-200 whitespace-pre-line leading-relaxed">
-                    {generatedResult.polishedDescription}
-                  </p>
+                  {view.headline ? (
+                    <h3 className="text-base font-extrabold text-emerald-300">
+                      &ldquo;<StreamText text={view.headline} active={isActive('headline')} />&rdquo;
+                    </h3>
+                  ) : (
+                    <Skeleton className="h-5 w-2/3" />
+                  )}
+                  {view.polishedDescription ? (
+                    <p className="text-xs text-stone-200 whitespace-pre-line leading-relaxed">
+                      <StreamText text={view.polishedDescription} active={isActive('polishedDescription')} />
+                    </p>
+                  ) : (
+                    isLoading && <Skeleton className="h-2.5 w-full" lines={4} />
+                  )}
 
-                  {/* Family Tags */}
-                  {generatedResult.suggestedFamilyTags && (
+                  {/* Family Tags (written last by the model) */}
+                  {view.suggestedFamilyTags && view.suggestedFamilyTags.length > 0 && (
                     <div className="pt-2 flex flex-wrap gap-1.5">
-                      {generatedResult.suggestedFamilyTags.map((tag: string, idx: number) => (
+                      {view.suggestedFamilyTags.map((tag, idx) => (
                         <span
                           key={idx}
-                          className="text-[10px] bg-stone-800 text-stone-300 px-2 py-0.5 rounded-md border border-stone-700"
+                          className="text-[10px] bg-stone-800 text-stone-300 px-2 py-0.5 rounded-md border border-stone-700 stream-in"
                         >
                           {tag}
                         </span>
@@ -644,134 +732,163 @@ export function PartnerPlatform({
               </div>
 
               {/* 2. Ready-to-Use Social Media Promotional Copy */}
-              <div className="bg-stone-900 border border-stone-800 rounded-2xl p-6 shadow-xl space-y-4">
-                <div className="flex items-center justify-between border-b border-stone-800 pb-3">
-                  <div className="flex items-center gap-2">
-                    <span className="w-6 h-6 rounded-lg bg-amber-950 border border-amber-800 text-amber-400 flex items-center justify-center text-xs font-bold">
-                      2
-                    </span>
-                    <div>
-                      <h4 className="text-sm font-bold text-white">
-                        {t.partner.section2Title}
-                      </h4>
-                      <p className="text-[11px] text-stone-400">
-                        {t.partner.section2Desc}
-                      </p>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() =>
-                      handleCopy(
-                        `${generatedResult.socialMediaCopy?.hook}\n\n${
-                          generatedResult.socialMediaCopy?.caption
-                        }\n\n${generatedResult.socialMediaCopy?.hashtags?.join(' ')}`,
-                        'social'
-                      )
-                    }
-                    className="p-1.5 rounded-lg bg-stone-800 hover:bg-stone-700 text-stone-300 hover:text-white transition-colors cursor-pointer text-xs flex items-center gap-1"
-                  >
-                    {copiedKey === 'social' ? (
-                      <Check className="w-3.5 h-3.5 text-emerald-400" />
-                    ) : (
-                      <Copy className="w-3.5 h-3.5" />
-                    )}
-                    <span>{copiedKey === 'social' ? t.partner.copiedBtn : t.partner.copyPostBtn}</span>
-                  </button>
-                </div>
-
-                <div className="p-4 bg-stone-950 border border-stone-800 rounded-xl space-y-2.5">
-                  <div className="text-xs font-bold text-amber-300">
-                    {generatedResult.socialMediaCopy?.hook}
-                  </div>
-                  <p className="text-xs text-stone-200 whitespace-pre-line leading-relaxed">
-                    {generatedResult.socialMediaCopy?.caption}
-                  </p>
-                  <div className="pt-2 flex flex-wrap gap-1.5">
-                    {generatedResult.socialMediaCopy?.hashtags?.map((tag: string, idx: number) => (
-                      <span
-                        key={idx}
-                        className="text-[10px] text-emerald-400 font-mono bg-emerald-950/40 border border-emerald-900 px-2 py-0.5 rounded"
-                      >
-                        {tag}
+              {(view.socialMediaCopy || isLoading) && (
+                <div className="bg-stone-900 border border-stone-800 rounded-2xl p-6 shadow-xl space-y-4 stream-in">
+                  <div className="flex items-center justify-between border-b border-stone-800 pb-3">
+                    <div className="flex items-center gap-2">
+                      <span className="w-6 h-6 rounded-lg bg-amber-950 border border-amber-800 text-amber-400 flex items-center justify-center text-xs font-bold">
+                        2
                       </span>
-                    ))}
+                      <div>
+                        <h4 className="text-sm font-bold text-white">{t.partner.section2Title}</h4>
+                        <p className="text-[11px] text-stone-400">{t.partner.section2Desc}</p>
+                      </div>
+                    </div>
+                    {!isLoading && (
+                      <button
+                        onClick={() =>
+                          handleCopy(
+                            `${view.socialMediaCopy?.hook}\n\n${view.socialMediaCopy?.caption}\n\n${view.socialMediaCopy?.hashtags?.join(' ')}`,
+                            'social'
+                          )
+                        }
+                        className="p-1.5 rounded-lg bg-stone-800 hover:bg-stone-700 text-stone-300 hover:text-white transition-colors cursor-pointer text-xs flex items-center gap-1"
+                      >
+                        {copiedKey === 'social' ? (
+                          <Check className="w-3.5 h-3.5 text-emerald-400" />
+                        ) : (
+                          <Copy className="w-3.5 h-3.5" />
+                        )}
+                        <span>{copiedKey === 'social' ? t.partner.copiedBtn : t.partner.copyPostBtn}</span>
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="p-4 bg-stone-950 border border-stone-800 rounded-xl space-y-2.5">
+                    {view.socialMediaCopy?.hook ? (
+                      <div className="text-xs font-bold text-amber-300">
+                        <StreamText text={view.socialMediaCopy.hook} active={isActive('socialMediaCopy.hook')} />
+                      </div>
+                    ) : (
+                      <Skeleton className="h-3 w-3/4" />
+                    )}
+                    {view.socialMediaCopy?.caption ? (
+                      <p className="text-xs text-stone-200 whitespace-pre-line leading-relaxed">
+                        <StreamText text={view.socialMediaCopy.caption} active={isActive('socialMediaCopy.caption')} />
+                      </p>
+                    ) : (
+                      isLoading && <Skeleton className="h-2.5 w-full" lines={3} />
+                    )}
+                    {view.socialMediaCopy?.hashtags && view.socialMediaCopy.hashtags.length > 0 && (
+                      <div className="pt-2 flex flex-wrap gap-1.5">
+                        {view.socialMediaCopy.hashtags.map((tag, idx) => (
+                          <span
+                            key={idx}
+                            className="text-[10px] text-emerald-400 font-mono bg-emerald-950/40 border border-emerald-900 px-2 py-0.5 rounded stream-in"
+                          >
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
-              </div>
+              )}
 
               {/* 3. Gamified Family Mission Idea */}
-              <div className="bg-stone-900 border border-stone-800 rounded-2xl p-6 shadow-xl space-y-4">
-                <div className="flex items-center justify-between border-b border-stone-800 pb-3">
-                  <div className="flex items-center gap-2">
-                    <span className="w-6 h-6 rounded-lg bg-emerald-950 border border-emerald-800 text-emerald-400 flex items-center justify-center text-xs font-bold">
-                      3
-                    </span>
-                    <div>
-                      <h4 className="text-sm font-bold text-white">
-                        {t.partner.section3Title}
-                      </h4>
-                      <p className="text-[11px] text-stone-400">
-                        {t.partner.section3Desc}
-                      </p>
+              {(view.gamifiedMission || isLoading) && (
+                <div className="bg-stone-900 border border-stone-800 rounded-2xl p-6 shadow-xl space-y-4 stream-in">
+                  <div className="flex items-center justify-between border-b border-stone-800 pb-3 gap-3">
+                    <div className="flex items-center gap-2">
+                      <span className="w-6 h-6 rounded-lg bg-emerald-950 border border-emerald-800 text-emerald-400 flex items-center justify-center text-xs font-bold">
+                        3
+                      </span>
+                      <div>
+                        <h4 className="text-sm font-bold text-white">{t.partner.section3Title}</h4>
+                        <p className="text-[11px] text-stone-400">{t.partner.section3Desc}</p>
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-1 text-xs text-amber-400 font-bold bg-amber-950/60 border border-amber-800/60 px-2.5 py-1 rounded-full">
-                    <Award className="w-3.5 h-3.5" />
-                    <span>Badge: {generatedResult.gamifiedMission?.badgeTitle}</span>
-                  </div>
-                </div>
-
-                <div className="p-4 bg-amber-950/20 border border-amber-800/40 rounded-xl space-y-2">
-                  <div className="text-xs font-bold text-amber-200">
-                    {generatedResult.gamifiedMission?.missionTitle}
-                  </div>
-                  <p className="text-xs text-stone-200 leading-relaxed">
-                    {generatedResult.gamifiedMission?.missionDescription}
-                  </p>
-                </div>
-              </div>
-
-              {/* 4. Grounding Verification Checklist (Audit) */}
-              <div className="bg-stone-900 border border-stone-800 rounded-2xl p-6 shadow-xl space-y-4">
-                <div className="flex items-center justify-between border-b border-stone-800 pb-3">
-                  <div className="flex items-center gap-2">
-                    <span className="w-6 h-6 rounded-lg bg-emerald-950 border border-emerald-800 text-emerald-400 flex items-center justify-center text-xs font-bold">
-                      4
-                    </span>
-                    <div>
-                      <h4 className="text-sm font-bold text-white flex items-center gap-2">
-                        <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                        {t.partner.section4Title}
-                      </h4>
-                      <p className="text-[11px] text-stone-400">
-                        {t.partner.section4Desc}
-                      </p>
-                    </div>
-                  </div>
-                  <span className="text-[11px] text-emerald-300 font-bold bg-emerald-950 px-2.5 py-0.5 rounded border border-emerald-800">
-                    {t.partner.groundedStatus}
-                  </span>
-                </div>
-
-                <div className="space-y-2.5">
-                  {generatedResult.groundingChecklist?.map((item, idx) => (
-                    <div
-                      key={idx}
-                      className="p-3 bg-stone-950/80 border border-stone-800 rounded-xl space-y-1 text-xs"
-                    >
-                      <div className="flex items-center gap-2 text-stone-200 font-medium">
-                        <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                        <span className="text-stone-300">
-                          <strong>{language === 'id' ? 'Fakta Mentah:' : 'Raw Fact:'}</strong> "{item.rawFact}"
+                    {view.gamifiedMission?.badgeTitle && (
+                      <div className="flex items-center gap-1 text-xs text-amber-400 font-bold bg-amber-950/60 border border-amber-800/60 px-2.5 py-1 rounded-full stream-in">
+                        <Award className="w-3.5 h-3.5" />
+                        <span>
+                          Badge:{' '}
+                          <StreamText text={view.gamifiedMission.badgeTitle} active={isActive('gamifiedMission.badgeTitle')} />
                         </span>
                       </div>
-                      <div className="pl-6 text-[11px] text-emerald-400/90">
-                        ↳ <strong>{language === 'id' ? 'Audit Verifikasi:' : 'Grounding Trace:'}</strong> {item.howItWasUsed}
+                    )}
+                  </div>
+
+                  <div className="p-4 bg-amber-950/20 border border-amber-800/40 rounded-xl space-y-2">
+                    {view.gamifiedMission?.missionTitle ? (
+                      <div className="text-xs font-bold text-amber-200">
+                        <StreamText text={view.gamifiedMission.missionTitle} active={isActive('gamifiedMission.missionTitle')} />
+                      </div>
+                    ) : (
+                      <Skeleton className="h-3 w-1/2" />
+                    )}
+                    {view.gamifiedMission?.missionDescription ? (
+                      <p className="text-xs text-stone-200 leading-relaxed">
+                        <StreamText
+                          text={view.gamifiedMission.missionDescription}
+                          active={isActive('gamifiedMission.missionDescription')}
+                        />
+                      </p>
+                    ) : (
+                      isLoading && <Skeleton className="h-2.5 w-full" lines={2} />
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* 4. Grounding Verification Checklist (Audit) */}
+              {(view.groundingChecklist || isLoading) && (
+                <div className="bg-stone-900 border border-stone-800 rounded-2xl p-6 shadow-xl space-y-4 stream-in">
+                  <div className="flex items-center justify-between border-b border-stone-800 pb-3">
+                    <div className="flex items-center gap-2">
+                      <span className="w-6 h-6 rounded-lg bg-emerald-950 border border-emerald-800 text-emerald-400 flex items-center justify-center text-xs font-bold">
+                        4
+                      </span>
+                      <div>
+                        <h4 className="text-sm font-bold text-white flex items-center gap-2">
+                          <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                          {t.partner.section4Title}
+                        </h4>
+                        <p className="text-[11px] text-stone-400">{t.partner.section4Desc}</p>
                       </div>
                     </div>
-                  ))}
+                    {!isLoading && (
+                      <span className="text-[11px] text-emerald-300 font-bold bg-emerald-950 px-2.5 py-0.5 rounded border border-emerald-800 stream-in">
+                        {t.partner.groundedStatus}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="space-y-2.5">
+                    {(view.groundingChecklist ?? []).map((item, idx) => (
+                      <div key={idx} className="p-3 bg-stone-950/80 border border-stone-800 rounded-xl space-y-1 text-xs stream-in">
+                        <div className="flex items-center gap-2 text-stone-200 font-medium">
+                          <CheckCircle2
+                            className={`w-4 h-4 shrink-0 transition-colors ${item.howItWasUsed ? 'text-emerald-400' : 'text-stone-600'}`}
+                          />
+                          <span className="text-stone-300">
+                            <strong>{language === 'id' ? 'Fakta Mentah:' : 'Raw Fact:'}</strong> &ldquo;
+                            <StreamText text={item.rawFact} active={isActive(`groundingChecklist.${idx}.rawFact`)} />
+                            &rdquo;
+                          </span>
+                        </div>
+                        {item.howItWasUsed && (
+                          <div className="pl-6 text-[11px] text-emerald-400/90">
+                            ↳ <strong>{language === 'id' ? 'Audit Verifikasi:' : 'Grounding Trace:'}</strong>{' '}
+                            <StreamText text={item.howItWasUsed} active={isActive(`groundingChecklist.${idx}.howItWasUsed`)} />
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                    {isLoading && !view.groundingChecklist?.length && <Skeleton className="h-10 w-full rounded-xl" lines={2} />}
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           ) : (
             <div className="h-full min-h-[460px] bg-stone-900 border border-dashed border-stone-800 rounded-2xl p-8 flex flex-col items-center justify-center text-center space-y-4">
@@ -779,15 +896,9 @@ export function PartnerPlatform({
                 <Store className="w-8 h-8" />
               </div>
               <div className="max-w-md space-y-2">
-                <h3 className="text-lg font-bold text-white">
-                  {t.partner.emptyTitle}
-                </h3>
-                <p className="text-xs text-stone-400">
-                  {t.partner.emptyDesc}
-                </p>
-                <p className="text-[11px] text-stone-500">
-                  {t.partner.emptySubdesc}
-                </p>
+                <h3 className="text-lg font-bold text-white">{t.partner.emptyTitle}</h3>
+                <p className="text-xs text-stone-400">{t.partner.emptyDesc}</p>
+                <p className="text-[11px] text-stone-500">{t.partner.emptySubdesc}</p>
               </div>
             </div>
           )}

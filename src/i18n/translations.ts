@@ -181,6 +181,35 @@ export interface Translations {
     badgeModalVerified: string;
     badgeModalDate: string;
   };
+  stream: {
+    liveAi: string;
+    offlineDemo: string;
+    thinkingTitle: string;
+    reasoningTitle: string;
+    statusReading: string;
+    statusMatching: string;
+    statusPacing: string;
+    statusTitle: string;
+    statusWhy: string;
+    statusDay: string;
+    statusBadge: string;
+    statusPledge: string;
+    partnerStepProfile: string;
+    partnerStepSocial: string;
+    partnerStepMission: string;
+    partnerStepAudit: string;
+    partnerStatusProfile: string;
+    partnerStatusSocial: string;
+    partnerStatusMission: string;
+    partnerStatusAudit: string;
+    partnerStatusStarting: string;
+    errorTitle: string;
+    retry: string;
+    dismiss: string;
+    publishLocked: string;
+    nameRequired: string;
+    factRequired: string;
+  };
   footer: {
     brandTitle: string;
     eventTag: string;
@@ -284,7 +313,7 @@ export const translations: Record<Language, Translations> = {
       heroDesc:
         'Enter verified business facts to generate professional storytelling profiles, social media campaign copy, and gamified family missions—powered by Gemini 3.8 Flash with Structured Outputs. Strictly grounded, zero fabricated claims.',
       groundingBadge: 'Strict Anti-Hallucination Grounding',
-      structuredOutputBadge: 'gemini-3.8-flash Structured Output',
+      structuredOutputBadge: 'Gemini Structured Output',
       oneClickPublishBadge: "One-Click 'Publish to Ecosystem'",
       formTitle: 'Partner Verification Form',
       formDesc: 'Input your authentic local business details & verified facts.',
@@ -311,7 +340,7 @@ export const translations: Record<Language, Translations> = {
       placeholderFact: 'e.g. 100% solar-evaporated in hollowed coconut tree trunks...',
       btnAddFact: 'Add Fact',
       btnRunAssistant: 'Run AI Partner Assistant (Grounded Output)',
-      btnRunningAssistant: 'Generating Grounded Marketing Kit with Gemini 3.8 Flash...',
+      btnRunningAssistant: 'Writing your grounded marketing kit...',
       kitReady: 'Marketing Kit Ready',
       kitSubtitle: 'Zero fabricated claims • Audited against verified facts',
       btnPublish: 'Publish to Ecosystem',
@@ -386,6 +415,35 @@ export const translations: Record<Language, Translations> = {
       linkCopied: 'Link Copied!',
       badgeModalVerified: 'Verified Achievement Badge',
       badgeModalDate: 'Date Earned:'
+    },
+    stream: {
+      liveAi: 'Live AI',
+      offlineDemo: 'Offline demo',
+      thinkingTitle: 'AI is thinking',
+      reasoningTitle: 'How the AI reasoned',
+      statusReading: 'Reading verified partner data…',
+      statusMatching: 'Matching partners to your interests…',
+      statusPacing: 'Balancing pace and travel time…',
+      statusTitle: 'Naming your adventure…',
+      statusWhy: 'Explaining why it fits your family…',
+      statusDay: 'Planning day {n}…',
+      statusBadge: 'Choosing your passport badge…',
+      statusPledge: 'Writing your sustainability pledge…',
+      partnerStepProfile: 'Profile',
+      partnerStepSocial: 'Social',
+      partnerStepMission: 'Mission',
+      partnerStepAudit: 'Fact audit',
+      partnerStatusProfile: 'Writing your profile story…',
+      partnerStatusSocial: 'Drafting your social post…',
+      partnerStatusMission: 'Designing a family mission…',
+      partnerStatusAudit: 'Auditing every fact you supplied…',
+      partnerStatusStarting: 'Reading your verified facts…',
+      errorTitle: 'Generation stopped',
+      retry: 'Try again',
+      dismiss: 'Dismiss',
+      publishLocked: 'Publishing unlocks when the kit is complete',
+      nameRequired: 'Please enter a business name.',
+      factRequired: 'Please provide at least one verified fact about your business.'
     },
     footer: {
       brandTitle: 'Experience More Bali 2027',
@@ -488,7 +546,7 @@ export const translations: Record<Language, Translations> = {
       heroDesc:
         'Masukkan fakta bisnis terverifikasi untuk menghasilkan profil naratif profesional, salinan kampanye media sosial, dan misi keluarga—didukung oleh Gemini 3.8 Flash dengan Output Terstruktur. Strictly grounded, bebas klaim palsu.',
       groundingBadge: 'Bebas Halusinasi & Terverifikasi',
-      structuredOutputBadge: 'Output Terstruktur gemini-3.8-flash',
+      structuredOutputBadge: 'Output Terstruktur Gemini',
       oneClickPublishBadge: "Satu Klik 'Publikasikan ke Ekosistem'",
       formTitle: 'Formulir Verifikasi Mitra',
       formDesc: 'Masukkan detail bisnis lokal autentik & fakta terverifikasi Anda.',
@@ -515,7 +573,7 @@ export const translations: Record<Language, Translations> = {
       placeholderFact: 'contoh: 100% kristalisasi matahari di palung batang kelapa...',
       btnAddFact: 'Tambah Fakta',
       btnRunAssistant: 'Jalankan Asisten AI Mitra (Output Terverifikasi)',
-      btnRunningAssistant: 'Membuat Materi Pemasaran Terverifikasi dengan Gemini 3.8 Flash...',
+      btnRunningAssistant: 'Menulis materi pemasaran terverifikasi...',
       kitReady: 'Materi Pemasaran Siap',
       kitSubtitle: 'Bebas klaim palsu • Diaudit berdasarkan fakta terverifikasi',
       btnPublish: 'Publikasikan ke Ekosistem',
@@ -590,6 +648,35 @@ export const translations: Record<Language, Translations> = {
       linkCopied: 'Tautan Tersalin!',
       badgeModalVerified: 'Lencana Pencapaian Terverifikasi',
       badgeModalDate: 'Tanggal Diperoleh:'
+    },
+    stream: {
+      liveAi: 'AI Langsung',
+      offlineDemo: 'Demo offline',
+      thinkingTitle: 'AI sedang berpikir',
+      reasoningTitle: 'Cara AI bernalar',
+      statusReading: 'Membaca data mitra terverifikasi…',
+      statusMatching: 'Mencocokkan mitra dengan minat Anda…',
+      statusPacing: 'Menyeimbangkan ritme dan waktu perjalanan…',
+      statusTitle: 'Memberi nama petualangan Anda…',
+      statusWhy: 'Menjelaskan kecocokan untuk keluarga Anda…',
+      statusDay: 'Merencanakan hari ke-{n}…',
+      statusBadge: 'Memilih lencana paspor Anda…',
+      statusPledge: 'Menulis janji keberlanjutan…',
+      partnerStepProfile: 'Profil',
+      partnerStepSocial: 'Sosial',
+      partnerStepMission: 'Misi',
+      partnerStepAudit: 'Audit fakta',
+      partnerStatusProfile: 'Menulis kisah profil Anda…',
+      partnerStatusSocial: 'Menyusun postingan media sosial…',
+      partnerStatusMission: 'Merancang misi keluarga…',
+      partnerStatusAudit: 'Mengaudit setiap fakta yang Anda berikan…',
+      partnerStatusStarting: 'Membaca fakta terverifikasi Anda…',
+      errorTitle: 'Pembuatan terhenti',
+      retry: 'Coba lagi',
+      dismiss: 'Tutup',
+      publishLocked: 'Publikasi terbuka setelah materi selesai',
+      nameRequired: 'Silakan masukkan nama bisnis.',
+      factRequired: 'Harap sertakan setidaknya satu fakta terverifikasi tentang bisnis Anda.'
     },
     footer: {
       brandTitle: 'Experience More Bali 2027',

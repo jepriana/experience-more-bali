@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useRef } from 'react';
 import {
   CURATED_BALI_PARTNERS,
   CuratedPartner,
@@ -10,6 +10,9 @@ import {
 import { usePartners } from '@/context/PartnersContext';
 import { useSessionState } from '@/context/SessionStateContext';
 import type { ItineraryResponse } from '@/lib/schemas';
+import type { StreamResultMeta } from '@/lib/streamProtocol';
+import { useAiStream, type DeepPartial } from '@/lib/useAiStream';
+import { AiSourceBadge, Skeleton, StreamErrorBanner, StreamText, ThinkingPanel, revealOutput } from '@/components/ai/StreamingUi';
 import { useLanguage } from '@/context/LanguageContext';
 import {
   Compass,
@@ -46,9 +49,17 @@ export function TravelerPlatform({ onSelectPartnerForPartnerView }: TravelerPlat
     'Bamboo Eco Lodges'
   ]);
   const [customNotes, setCustomNotes] = useSessionState('traveler.customNotes', '');
-  // persist:false -> survives tab switches (request keeps running) but not a refresh
-  const [isLoading, setIsLoading] = useSessionState('traveler.isLoading', false, { persist: false });
   const [adventureResult, setAdventureResult] = useSessionState<ItineraryResponse | null>('traveler.adventureResult', null);
+  // where the last result came from (live AI vs offline demo) + the model's reasoning summary
+  const [resultMeta, setResultMeta] = useSessionState<(StreamResultMeta & { thoughts?: string }) | null>(
+    'traveler.resultMeta',
+    null
+  );
+
+  // Live stream: keeps running (and visible) across tab switches
+  const stream = useAiStream<ItineraryResponse>('traveler');
+  const isLoading = stream.isStreaming;
+  const resultRef = useRef<HTMLDivElement>(null);
 
   // Directory filter state
   const [selectedCategory, setSelectedCategory] = useSessionState<PartnerCategory | 'All'>('traveler.selectedCategory', 'All');
@@ -83,32 +94,60 @@ export function TravelerPlatform({ onSelectPartnerForPartnerView }: TravelerPlat
     }
   };
 
-  const handleGenerateItinerary = async () => {
-    setIsLoading(true);
-    try {
-      const res = await fetch('/api/traveler', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          travelerStyle,
-          duration,
-          pace,
-          interests: selectedInterests,
-          customNotes,
-          customPartners: partners,
-          language
-        })
-      });
-      const data = await res.json();
-      if (data.data) {
-        setAdventureResult(data.data);
+  const handleGenerateItinerary = () => {
+    if (isLoading) return;
+    // Bring the output into view (below the form on phones, or scrolled under the header) so the stream is seen
+    revealOutput(resultRef.current);
+    void stream.start(
+      '/api/traveler',
+      {
+        travelerStyle,
+        duration,
+        pace,
+        interests: selectedInterests,
+        customNotes,
+        customPartners: partners,
+        language
+      },
+      (final) => {
+        setAdventureResult(final.data);
+        setResultMeta({
+          isAiGenerated: final.isAiGenerated,
+          model: final.model,
+          fallbackReason: final.fallbackReason,
+          thoughts: final.thoughts
+        });
       }
-    } catch (err) {
-      console.error('Failed to generate itinerary:', err);
-    } finally {
-      setIsLoading(false);
-    }
+    );
   };
+
+  // While streaming, render the half-written answer; afterwards the validated result.
+  const view: DeepPartial<ItineraryResponse> | null = isLoading ? (stream.partial ?? {}) : adventureResult;
+  const isActive = (path: string) => stream.activePath === path;
+  const expectedDays = parseInt(duration, 10) || 3;
+
+  // Human-readable "what the AI is doing right now", from the field being written
+  const liveStatus = (() => {
+    if (!stream.activePath) return null;
+    const [section, index] = stream.activePath.split('.');
+    switch (section) {
+      case 'title':
+      case 'theme':
+        return t.stream.statusTitle;
+      case 'whyThisFits':
+        return t.stream.statusWhy;
+      case 'recommendedPartnerIds':
+        return t.stream.statusMatching;
+      case 'days':
+        return t.stream.statusDay.replace('{n}', String(Number(index ?? 0) + 1));
+      case 'passportBadgeToEarn':
+        return t.stream.statusBadge;
+      case 'sustainabilityPledge':
+        return t.stream.statusPledge;
+      default:
+        return null;
+    }
+  })();
 
   const filteredPartners = partners.filter((partner) => {
     const matchesCategory =
@@ -271,7 +310,7 @@ export function TravelerPlatform({ onSelectPartnerForPartnerView }: TravelerPlat
           <button
             onClick={handleGenerateItinerary}
             disabled={isLoading}
-            className="w-full py-3.5 px-4 rounded-xl font-bold text-sm bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white shadow-lg shadow-emerald-950/50 flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50"
+            className="w-full py-3.5 px-4 rounded-xl font-bold text-sm bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white shadow-lg shadow-emerald-950/50 flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-[0.99] disabled:opacity-60 disabled:cursor-wait"
           >
             {isLoading ? (
               <>
@@ -287,30 +326,82 @@ export function TravelerPlatform({ onSelectPartnerForPartnerView }: TravelerPlat
           </button>
         </div>
 
-        {/* Right Column: AI Result Preview or Empty Prompt */}
-        <div className="lg:col-span-7 flex flex-col justify-start space-y-6">
-          {adventureResult ? (
-            <div className="bg-stone-900 border border-stone-800 rounded-2xl p-6 sm:p-7 shadow-xl space-y-6">
+        {/* Right Column: AI result — rendered live while it streams in */}
+        <div ref={resultRef} className="lg:col-span-7 flex flex-col justify-start space-y-4">
+          {stream.state.phase === 'error' && stream.state.error && (
+            <StreamErrorBanner
+              title={t.stream.errorTitle}
+              message={stream.state.error}
+              retryLabel={t.stream.retry}
+              dismissLabel={t.stream.dismiss}
+              onRetry={handleGenerateItinerary}
+              onDismiss={stream.dismissError}
+            />
+          )}
+
+          <ThinkingPanel
+            live={isLoading}
+            thoughts={isLoading ? stream.state.thoughts : resultMeta?.thoughts ?? ''}
+            status={liveStatus}
+            idleStatuses={[t.stream.statusReading, t.stream.statusMatching, t.stream.statusPacing]}
+            title={t.stream.thinkingTitle}
+            doneTitle={t.stream.reasoningTitle}
+          />
+
+          {view ? (
+            <div
+              className={`bg-stone-900 border rounded-2xl p-6 sm:p-7 shadow-xl space-y-6 transition-colors duration-700 ${
+                isLoading ? 'border-emerald-800/50' : 'border-stone-800'
+              }`}
+              aria-busy={isLoading}
+            >
               {/* Header result */}
               <div className="border-b border-stone-800 pb-5">
                 <div className="flex flex-wrap items-center justify-between gap-3">
-                  <span className="px-3 py-1 rounded-full text-xs font-semibold bg-emerald-950 text-emerald-300 border border-emerald-800/80">
-                    {adventureResult.theme || 'Curated Bali 2027 Adventure'}
-                  </span>
-                  <div className="flex items-center gap-1.5 text-xs text-amber-400 font-semibold bg-amber-950/40 border border-amber-800/40 px-3 py-1 rounded-full">
-                    <Award className="w-4 h-4" />
-                    <span>{adventureResult.passportBadgeToEarn}</span>
+                  <div className="flex flex-wrap items-center gap-2">
+                    {view.theme ? (
+                      <span className="px-3 py-1 rounded-full text-xs font-semibold bg-emerald-950 text-emerald-300 border border-emerald-800/80 stream-in">
+                        <StreamText text={view.theme} active={isActive('theme')} />
+                      </span>
+                    ) : isLoading ? (
+                      <Skeleton className="h-6 w-44 rounded-full" />
+                    ) : null}
+                    {!isLoading && (
+                      <AiSourceBadge meta={resultMeta} liveLabel={t.stream.liveAi} offlineLabel={t.stream.offlineDemo} />
+                    )}
                   </div>
+                  {view.passportBadgeToEarn ? (
+                    <div className="flex items-center gap-1.5 text-xs text-amber-400 font-semibold bg-amber-950/40 border border-amber-800/40 px-3 py-1 rounded-full stream-in">
+                      <Award className="w-4 h-4" />
+                      <StreamText text={view.passportBadgeToEarn} active={isActive('passportBadgeToEarn')} />
+                    </div>
+                  ) : isLoading ? (
+                    <Skeleton className="h-6 w-36 rounded-full" />
+                  ) : null}
                 </div>
-                <h3 className="text-2xl font-extrabold text-white mt-3">
-                  {adventureResult.title}
-                </h3>
-                <div className="mt-3 p-3.5 bg-stone-800/70 border border-stone-700/60 rounded-xl text-xs text-stone-300 leading-relaxed">
-                  <span className="font-semibold text-emerald-400 block mb-1">
-                    {t.traveler.whyFitsTitle}
-                  </span>
-                  {adventureResult.whyThisFits}
-                </div>
+
+                {view.title ? (
+                  <h3 className="text-2xl font-extrabold text-white mt-3 stream-in">
+                    <StreamText text={view.title} active={isActive('title')} />
+                  </h3>
+                ) : (
+                  isLoading && (
+                    <div className="mt-4">
+                      <Skeleton className="h-7 w-3/4" />
+                    </div>
+                  )
+                )}
+
+                {(view.whyThisFits || isLoading) && (
+                  <div className="mt-3 p-3.5 bg-stone-800/70 border border-stone-700/60 rounded-xl text-xs text-stone-300 leading-relaxed">
+                    <span className="font-semibold text-emerald-400 block mb-1">{t.traveler.whyFitsTitle}</span>
+                    {view.whyThisFits ? (
+                      <StreamText text={view.whyThisFits} active={isActive('whyThisFits')} />
+                    ) : (
+                      <Skeleton className="h-2.5 w-full" lines={2} />
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* Day-by-Day Missions & Partners */}
@@ -318,57 +409,78 @@ export function TravelerPlatform({ onSelectPartnerForPartnerView }: TravelerPlat
                 <h4 className="text-sm font-bold uppercase tracking-wider text-stone-400">
                   {t.traveler.journeySequence}
                 </h4>
-                {adventureResult.days?.map((day, idx) => {
-                  const partner = partners.find((p) => p.id === day.partnerId);
+                {(view.days ?? []).map((day, idx) => {
+                  const partner = day.partnerId ? partners.find((p) => p.id === day.partnerId) : undefined;
+                  const field = (name: string) => isActive(`days.${idx}.${name}`);
                   return (
                     <div
                       key={idx}
-                      className="bg-stone-950/70 border border-stone-800 rounded-xl p-4 sm:p-5 space-y-3 hover:border-emerald-700/50 transition-colors"
+                      className="stream-in bg-stone-950/70 border border-stone-800 rounded-xl p-4 sm:p-5 space-y-3 hover:border-emerald-700/50 transition-colors"
                     >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <span className="w-6 h-6 rounded-full bg-emerald-600 text-white font-bold text-xs flex items-center justify-center">
-                            {day.dayNumber || idx + 1}
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span className="w-6 h-6 rounded-full bg-emerald-600 text-white font-bold text-xs flex items-center justify-center shrink-0">
+                            {idx + 1}
                           </span>
-                          <span className="text-sm font-bold text-white">{day.title}</span>
+                          {day.title ? (
+                            <span className="text-sm font-bold text-white">
+                              <StreamText text={day.title} active={field('title')} />
+                            </span>
+                          ) : (
+                            <div className="w-48">
+                              <Skeleton className="h-3.5 w-full" />
+                            </div>
+                          )}
                         </div>
                         {partner && (
-                          <span className="text-[11px] px-2.5 py-0.5 rounded-full font-semibold bg-stone-800 text-stone-300 border border-stone-700">
+                          <span className="text-[11px] px-2.5 py-0.5 rounded-full font-semibold bg-stone-800 text-stone-300 border border-stone-700 stream-in shrink-0">
                             {partner.category}
                           </span>
                         )}
                       </div>
 
-                      <div className="text-xs text-stone-300 space-y-1">
-                        <div className="font-semibold text-emerald-300 flex items-center gap-1.5">
-                          <MapPin className="w-3.5 h-3.5" />
-                          <span>{day.partnerName || partner?.name}</span>
-                          {partner && (
-                            <span className="text-stone-400 font-normal">({partner.location})</span>
-                          )}
-                        </div>
-                        <p className="text-stone-300">{day.activityHighlight}</p>
+                      <div className="text-xs text-stone-300 space-y-1.5">
+                        {partner ? (
+                          <div className="font-semibold text-emerald-300 flex items-start gap-1.5 stream-in">
+                            <MapPin className="w-3.5 h-3.5 shrink-0 mt-px" />
+                            <span>
+                              {partner.name}{' '}
+                              <span className="text-stone-400 font-normal">({partner.location})</span>
+                            </span>
+                          </div>
+                        ) : (
+                          isLoading && <Skeleton className="h-3 w-56" />
+                        )}
+                        {day.activityHighlight ? (
+                          <p className="text-stone-300">
+                            <StreamText text={day.activityHighlight} active={field('activityHighlight')} />
+                          </p>
+                        ) : (
+                          isLoading && <Skeleton className="h-2.5 w-full" lines={2} />
+                        )}
                       </div>
 
                       {/* Gamified Mission Box */}
-                      <div className="p-3 bg-amber-950/30 border border-amber-800/40 rounded-lg flex items-start gap-2.5 text-xs text-amber-200">
-                        <Award className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-                        <div>
-                          <span className="font-bold text-amber-300">{t.traveler.familyQuest} </span>
-                          <span>{day.familyMission}</span>
+                      {day.familyMission ? (
+                        <div className="p-3 bg-amber-950/30 border border-amber-800/40 rounded-lg flex items-start gap-2.5 text-xs text-amber-200 stream-in">
+                          <Award className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                          <div>
+                            <span className="font-bold text-amber-300">{t.traveler.familyQuest} </span>
+                            <StreamText text={day.familyMission} active={field('familyMission')} />
+                          </div>
                         </div>
-                      </div>
+                      ) : (
+                        isLoading && <Skeleton className="h-10 w-full rounded-lg" />
+                      )}
 
-                      {/* Direct WhatsApp Inquiry Button */}
-                      {partner && (
-                        <div className="pt-2 flex flex-wrap items-center justify-between gap-2 border-t border-stone-800/80">
-                          <span className="text-[11px] text-stone-400">
-                            {t.traveler.verifiedChannel}
-                          </span>
+                      {/* Direct WhatsApp Inquiry Button — only once the plan is final */}
+                      {partner && !isLoading && (
+                        <div className="pt-2 flex flex-wrap items-center justify-between gap-2 border-t border-stone-800/80 stream-in">
+                          <span className="text-[11px] text-stone-400">{t.traveler.verifiedChannel}</span>
                           <a
                             href={createWhatsAppInquiryUrl(
                               partner,
-                              `Om Swastiastu ${partner.name}! I am organizing our family trip via Experience More Bali 2027. We are following Day ${day.dayNumber}: "${day.title}". Could we check availability for your mission: "${day.familyMission}"?`
+                              `Om Swastiastu ${partner.name}! I am organizing our family trip via Experience More Bali 2027. We are following Day ${idx + 1}: "${day.title}". Could we check availability for your mission: "${day.familyMission}"?`
                             )}
                             target="_blank"
                             rel="noopener noreferrer"
@@ -383,15 +495,35 @@ export function TravelerPlatform({ onSelectPartnerForPartnerView }: TravelerPlat
                     </div>
                   );
                 })}
+
+                {/* Placeholders for the days still to come */}
+                {isLoading &&
+                  Array.from({ length: Math.max(0, expectedDays - (view.days?.length ?? 0)) }, (_, i) => (
+                    <div
+                      key={`pending-${i}`}
+                      className="bg-stone-950/40 border border-dashed border-stone-800 rounded-xl p-4 sm:p-5 space-y-3"
+                      aria-hidden="true"
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="w-6 h-6 rounded-full bg-stone-800 text-stone-500 font-bold text-xs flex items-center justify-center">
+                          {(view.days?.length ?? 0) + i + 1}
+                        </span>
+                        <div className="w-40">
+                          <Skeleton className="h-3 w-full" />
+                        </div>
+                      </div>
+                      <Skeleton className="h-2.5 w-full" lines={2} />
+                    </div>
+                  ))}
               </div>
 
               {/* Sustainability Pledge */}
-              {adventureResult.sustainabilityPledge && (
-                <div className="bg-emerald-950/40 border border-emerald-800/40 rounded-xl p-3.5 flex items-center gap-3 text-xs text-emerald-200">
+              {view.sustainabilityPledge && (
+                <div className="bg-emerald-950/40 border border-emerald-800/40 rounded-xl p-3.5 flex items-center gap-3 text-xs text-emerald-200 stream-in">
                   <HeartHandshake className="w-5 h-5 text-emerald-400 shrink-0" />
                   <div>
                     <span className="font-bold text-white block">{t.traveler.pledgeTitle}</span>
-                    <span>{adventureResult.sustainabilityPledge}</span>
+                    <StreamText text={view.sustainabilityPledge} active={isActive('sustainabilityPledge')} />
                   </div>
                 </div>
               )}
