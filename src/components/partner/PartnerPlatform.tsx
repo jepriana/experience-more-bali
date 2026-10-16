@@ -8,6 +8,7 @@ import {
   createWhatsAppInquiryUrl
 } from '@/data/curatedPartners';
 import { usePartners } from '@/context/PartnersContext';
+import type { PartnerProfile } from '@/lib/schemas';
 import { useLanguage } from '@/context/LanguageContext';
 import {
   Store,
@@ -54,7 +55,7 @@ export function PartnerPlatform({ initialPartnerId, onNavigateToTraveler }: Part
 
   // UI state
   const [isLoading, setIsLoading] = useState(false);
-  const [generatedResult, setGeneratedResult] = useState<any>(null);
+  const [generatedResult, setGeneratedResult] = useState<PartnerProfile | null>(null);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [publishedSuccess, setPublishedSuccess] = useState(false);
   const [lastPublishedPartner, setLastPublishedPartner] = useState<CuratedPartner | null>(null);
@@ -732,7 +733,7 @@ export function PartnerPlatform({ initialPartnerId, onNavigateToTraveler }: Part
                 </div>
 
                 <div className="space-y-2.5">
-                  {generatedResult.groundingChecklist?.map((item: any, idx: number) => (
+                  {generatedResult.groundingChecklist?.map((item, idx) => (
                     <div
                       key={idx}
                       className="p-3 bg-stone-950/80 border border-stone-800 rounded-xl space-y-1 text-xs"

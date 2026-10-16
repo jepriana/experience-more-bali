@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
-import { getGemini, DEFAULT_GEMINI_MODEL, isGeminiConfigured } from '@/lib/gemini';
-import { CURATED_BALI_PARTNERS } from '@/data/curatedPartners';
+import { getGemini, DEFAULT_GEMINI_MODEL, FAST_GENERATION_CONFIG, logGeminiUsage, isGeminiConfigured } from '@/lib/gemini';
+import { CURATED_BALI_PARTNERS, type CuratedPartner } from '@/data/curatedPartners';
+import { makeItinerarySchema, toGeminiSchema, safeJson } from '@/lib/schemas';
 
 export async function POST(request: Request) {
   try {
@@ -14,12 +15,12 @@ export async function POST(request: Request) {
       language = 'en'
     } = body;
 
-    const sourcePartners =
+    const sourcePartners: CuratedPartner[] =
       Array.isArray(body.customPartners) && body.customPartners.length > 0
         ? body.customPartners
         : CURATED_BALI_PARTNERS;
 
-    const partnersContext = sourcePartners.map((p: any) => ({
+    const partnersContext = sourcePartners.map((p) => ({
       id: p.id,
       name: p.name,
       category: p.category,
@@ -28,10 +29,11 @@ export async function POST(request: Request) {
       familyTags: p.familyTags,
       verifiedFacts: p.verifiedFacts,
       description: p.description,
-      defaultMission: p.defaultMission,
-      whatsappInquiryNumber: p.whatsappInquiryNumber,
-      badgeTitle: p.badgeTitle
+      defaultMission: p.defaultMission
+      // whatsappInquiryNumber / badgeTitle intentionally not sent: the model doesn't need them (fewer tokens)
     }));
+
+    const ItinerarySchema = makeItinerarySchema(partnersContext.map((p) => p.id));
 
     // If Gemini API Key is configured, run live generation with @google/genai
     if (isGeminiConfigured()) {
@@ -53,26 +55,7 @@ CRITICAL GROUNDING INSTRUCTIONS:
 2. Select 3-4 best-matching partners across Destination, Accommodation, and Culinary.
 3. For each day, include a Gamified Mission for travelers/kids that inspires curiosity and verified achievements.
 4. Explain clearly *why each partner fits* the traveler's stated preferences and family pace.
-5. Return ONLY a valid JSON object matching this schema without any markdown formatting wrappers or code fences:
-{
-  "title": "Short inspiring journey title",
-  "theme": "Theme description e.g. Highland Culture & Living Reef Guardians",
-  "whyThisFits": "2-3 sentences explaining how this grounded selection fits the travelers preferences and pace",
-  "recommendedPartnerIds": ["dest-jatiluwih-subak", "accom-sidemen-bamboo-sanctuary", "culinary-nyuh-kuning-jamu-atelier"],
-  "days": [
-    {
-      "dayNumber": 1,
-      "title": "Day title",
-      "partnerId": "matched partner id from dataset",
-      "partnerName": "Partner name",
-      "activityHighlight": "Specific experience details based on verified facts",
-      "familyMission": "Gamified challenge for kids/family",
-      "whyChosen": "Why this partner fits this day"
-    }
-  ],
-  "passportBadgeToEarn": "Name of master adventure badge to earn",
-  "sustainabilityPledge": "Brief pledge to support local communities & Tri Hita Karana"
-}
+5. Use ONLY partner "id" values from the dataset below. Include one entry in "days" for each day of the trip (${duration}).
 
 TRAVELER PROFILE:
 - Style / Composition: ${travelerStyle}
@@ -82,36 +65,50 @@ TRAVELER PROFILE:
 - Additional Notes: ${customNotes || 'None'}
 
 CURATED LOCAL PARTNERS (GROUP A):
-${JSON.stringify(partnersContext, null, 2)}
+${JSON.stringify(partnersContext)}
 `;
 
+        const startedAt = Date.now();
         const response = await ai.models.generateContent({
           model: DEFAULT_GEMINI_MODEL,
           contents: prompt,
           config: {
-            temperature: 0.2
+            ...FAST_GENERATION_CONFIG,
+            responseMimeType: 'application/json',
+            responseJsonSchema: toGeminiSchema(ItinerarySchema)
           }
         });
+        logGeminiUsage('traveler', DEFAULT_GEMINI_MODEL, startedAt, response.usageMetadata);
 
-        let rawText = response.text || '';
-        rawText = rawText.replace(/```json/gi, '').replace(/```/g, '').trim();
+        const result = ItinerarySchema.safeParse(safeJson(response.text));
 
-        try {
-          const parsed = JSON.parse(rawText);
+        if (!result.success) {
+          console.warn('Itinerary failed schema validation:', result.error.issues);
           return NextResponse.json({
             success: true,
-            isAiGenerated: true,
-            model: DEFAULT_GEMINI_MODEL,
-            data: parsed
-          });
-        } catch {
-          return NextResponse.json({
-            success: true,
-            isAiGenerated: true,
-            model: DEFAULT_GEMINI_MODEL,
+            isAiGenerated: false,
+            fallbackReason: 'AI response did not match the itinerary schema. Using grounded dataset fallback.',
             data: generateFallbackItinerary(travelerStyle, duration, pace, interests, language)
           });
         }
+
+        const byId = new Map(partnersContext.map((p) => [p.id, p]));
+        const data = {
+          ...result.data,
+          recommendedPartnerIds: [...new Set(result.data.recommendedPartnerIds)],
+          days: result.data.days.map((day, i) => ({
+            ...day,
+            dayNumber: i + 1,
+            partnerName: byId.get(day.partnerId)?.name ?? ''
+          }))
+        };
+
+        return NextResponse.json({
+          success: true,
+          isAiGenerated: true,
+          model: DEFAULT_GEMINI_MODEL,
+          data
+        });
       } catch (geminiError: unknown) {
         console.error('Error invoking Gemini SDK:', geminiError);
         return NextResponse.json({

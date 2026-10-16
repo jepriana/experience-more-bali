@@ -1,4 +1,4 @@
-import { GoogleGenAI } from '@google/genai';
+import { GoogleGenAI, ThinkingLevel, type GenerateContentConfig } from '@google/genai';
 
 /**
  * Singleton instance of Google Gen AI SDK client.
@@ -31,5 +31,26 @@ export function isGeminiConfigured(): boolean {
 /**
  * Default recommended Gemini model for fast and grounded multimodal tasks.
  */
-export const DEFAULT_GEMINI_MODEL = 'gemini-2.5-flash';
+export const DEFAULT_GEMINI_MODEL = 'gemini-3.5-flash-lite';
 export const GEMINI_38_FLASH = 'gemini-3.8-flash';
+/** Different model used when the primary call fails, so the retry actually changes something. */
+export const FALLBACK_GEMINI_MODEL = 'gemini-3.1-flash-lite';
+
+/**
+ * Shared speed settings for every structured-output call.
+ * - thinkingLevel MINIMAL: Gemini 3.x thinks by default, which was most of the ~48s wait.
+ *   If a model rejects MINIMAL, the error is logged — switch to ThinkingLevel.LOW.
+ * - maxOutputTokens: hard cap so a rambling answer can't run long (still room for Bahasa output).
+ * - httpOptions.timeout: give up after 25s so the fallback kicks in instead of hanging.
+ */
+export const FAST_GENERATION_CONFIG: GenerateContentConfig = {
+  temperature: 0.2,
+  maxOutputTokens: 4096,
+  thinkingConfig: { thinkingLevel: ThinkingLevel.MINIMAL },
+  httpOptions: { timeout: 25_000 }
+};
+
+/** Logs where the time/tokens went: thinking vs answer vs prompt. */
+export function logGeminiUsage(label: string, model: string, startedAt: number, usage: unknown) {
+  console.log(`[gemini] ${label} model=${model} took=${Date.now() - startedAt}ms`, usage);
+}
