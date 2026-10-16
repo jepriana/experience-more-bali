@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import {
   CURATED_BALI_PARTNERS,
   CuratedPartner,
@@ -8,6 +8,7 @@ import {
   createWhatsAppInquiryUrl
 } from '@/data/curatedPartners';
 import { usePartners } from '@/context/PartnersContext';
+import { useSessionState } from '@/context/SessionStateContext';
 import type { ItineraryResponse } from '@/lib/schemas';
 import { useLanguage } from '@/context/LanguageContext';
 import {
@@ -36,22 +37,23 @@ export function TravelerPlatform({ onSelectPartnerForPartnerView }: TravelerPlat
   const { language, t } = useLanguage();
 
   // Builder Form state
-  const [travelerStyle, setTravelerStyle] = useState('Family with 2 children (ages 6 & 10)');
-  const [duration, setDuration] = useState('3 Days');
-  const [pace, setPace] = useState('Balanced Family Explorer');
-  const [selectedInterests, setSelectedInterests] = useState<string[]>([
+  const [travelerStyle, setTravelerStyle] = useSessionState('traveler.travelerStyle', 'Family with 2 children (ages 6 & 10)');
+  const [duration, setDuration] = useSessionState('traveler.duration', '3 Days');
+  const [pace, setPace] = useSessionState('traveler.pace', 'Balanced Family Explorer');
+  const [selectedInterests, setSelectedInterests] = useSessionState<string[]>('traveler.selectedInterests', [
     'Subak Heritage & Canals',
     'Traditional Herbal Jamu',
     'Bamboo Eco Lodges'
   ]);
-  const [customNotes, setCustomNotes] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [adventureResult, setAdventureResult] = useState<ItineraryResponse | null>(null);
+  const [customNotes, setCustomNotes] = useSessionState('traveler.customNotes', '');
+  // persist:false -> survives tab switches (request keeps running) but not a refresh
+  const [isLoading, setIsLoading] = useSessionState('traveler.isLoading', false, { persist: false });
+  const [adventureResult, setAdventureResult] = useSessionState<ItineraryResponse | null>('traveler.adventureResult', null);
 
   // Directory filter state
-  const [selectedCategory, setSelectedCategory] = useState<PartnerCategory | 'All'>('All');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [savedPassportPartners, setSavedPassportPartners] = useState<string[]>([
+  const [selectedCategory, setSelectedCategory] = useSessionState<PartnerCategory | 'All'>('traveler.selectedCategory', 'All');
+  const [searchQuery, setSearchQuery] = useSessionState('traveler.searchQuery', '');
+  const [savedPassportPartners, setSavedPassportPartners] = useSessionState<string[]>('traveler.savedPassportPartners', [
     'dest-jatiluwih-subak'
   ]);
 

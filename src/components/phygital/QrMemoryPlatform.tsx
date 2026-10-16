@@ -26,24 +26,25 @@ import {
   Maximize2
 } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
+import { useSessionState } from '@/context/SessionStateContext';
 
 type MockupType = 'tshirt' | 'patch';
 
 export function QrMemoryPlatform() {
   const { language, t } = useLanguage();
-  const [activeMockup, setActiveMockup] = useState<MockupType>('tshirt');
+  const [activeMockup, setActiveMockup] = useSessionState<MockupType>('memory.activeMockup', 'tshirt');
   const [isScanning, setIsScanning] = useState(false);
   const [scanMessage, setScanMessage] = useState<string | null>(null);
   const [mobileGlow, setMobileGlow] = useState(false);
   const [activeBadgeModal, setActiveBadgeModal] = useState<any | null>(null);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
-  const [storyLikes, setStoryLikes] = useState<{ [key: string]: number }>({
+  const [storyLikes, setStoryLikes] = useSessionState<{ [key: string]: number }>('memory.storyLikes', {
     story1: 24,
     story2: 38,
     story3: 42
   });
-  const [hasLiked, setHasLiked] = useState<{ [key: string]: boolean }>({});
+  const [hasLiked, setHasLiked] = useSessionState<{ [key: string]: boolean }>('memory.hasLiked', {});
 
   const handleScanClick = () => {
     setIsScanning(true);
