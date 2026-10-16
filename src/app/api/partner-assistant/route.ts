@@ -3,11 +3,15 @@ import {
   getGemini,
   DEFAULT_GEMINI_MODEL,
   FALLBACK_GEMINI_MODEL,
-  FAST_GENERATION_CONFIG,
+  STREAMING_GENERATION_CONFIG,
   logGeminiUsage,
   isGeminiConfigured
 } from '@/lib/gemini';
-import { PartnerProfileSchema, toGeminiSchema, safeJson } from '@/lib/schemas';
+import { PartnerProfileSchema, toGeminiSchema, safeJson, type PartnerProfile } from '@/lib/schemas';
+import { ndjsonResponse, streamGeminiToClient } from '@/lib/streaming';
+
+/** What the client receives in the final event (AI answer or the grounded fallback). */
+type PartnerResult = PartnerProfile | ReturnType<typeof generateGroundedFallbackResponse>;
 
 export async function POST(request: Request) {
   try {
@@ -73,53 +77,80 @@ ${factsList.map((fact, i) => `${i + 1}. ${fact}`).join('\n')}
         const structuredSchema = toGeminiSchema(PartnerProfileSchema);
 
         const config = {
-          ...FAST_GENERATION_CONFIG,
+          ...STREAMING_GENERATION_CONFIG,
           responseMimeType: 'application/json',
-          responseJsonSchema: structuredSchema
+          responseJsonSchema: structuredSchema,
+          abortSignal: request.signal // stop paying for tokens if the user leaves
         };
 
-        let response;
-        let usedModel = DEFAULT_GEMINI_MODEL;
-        const startedAt = Date.now();
-        try {
-          response = await ai.models.generateContent({ model: DEFAULT_GEMINI_MODEL, contents: prompt, config });
-        } catch (modelErr) {
-          console.warn(`Primary model ${DEFAULT_GEMINI_MODEL} failed, attempting ${FALLBACK_GEMINI_MODEL}:`, modelErr);
-          usedModel = FALLBACK_GEMINI_MODEL;
-          response = await ai.models.generateContent({ model: FALLBACK_GEMINI_MODEL, contents: prompt, config });
-        }
-        logGeminiUsage('partner-assistant', usedModel, startedAt, response.usageMetadata);
+        // Stream the marketing kit to the browser as it is written.
+        return ndjsonResponse<PartnerResult>(async (send) => {
+          const fallback = (reason: string) =>
+            send({
+              type: 'final',
+              isAiGenerated: false,
+              fallbackReason: reason,
+              data: generateGroundedFallbackResponse(name, category, location, factsList, language)
+            });
 
-        const result = PartnerProfileSchema.safeParse(safeJson(response.text));
-        if (!result.success) {
-          // Falls into the catch below -> honest fallback with isAiGenerated: false
-          throw new Error(`Schema validation failed: ${JSON.stringify(result.error.issues)}`);
-        }
+          let generation;
+          let usedModel = DEFAULT_GEMINI_MODEL;
+          let primarySentText = false;
+          const trackedSend: typeof send = (event) => {
+            if (event.type === 'delta') primarySentText = true;
+            send(event);
+          };
+          const startedAt = Date.now();
+          try {
+            generation = await streamGeminiToClient(ai, { model: DEFAULT_GEMINI_MODEL, contents: prompt, config }, trackedSend);
+          } catch (modelErr) {
+            // Retry on the fallback model only if nothing reached the browser yet
+            // (otherwise the user would see two answers spliced together).
+            if (primarySentText) {
+              console.error('Gemini stream broke mid-answer:', modelErr);
+              return fallback('Gemini stream was interrupted. Used deterministic grounded synthesizer.');
+            }
+            console.warn(`Primary model ${DEFAULT_GEMINI_MODEL} failed, attempting ${FALLBACK_GEMINI_MODEL}:`, modelErr);
+            try {
+              usedModel = FALLBACK_GEMINI_MODEL;
+              generation = await streamGeminiToClient(ai, { model: FALLBACK_GEMINI_MODEL, contents: prompt, config }, send);
+            } catch (fallbackErr) {
+              console.error('Gemini Partner Assistant API error:', fallbackErr);
+              return fallback('Gemini API call failed or timed out. Used deterministic grounded synthesizer.');
+            }
+          }
+          logGeminiUsage('partner-assistant', usedModel, startedAt, generation.usage);
 
-        return NextResponse.json({
-          success: true,
-          isAiGenerated: true,
-          model: usedModel,
-          data: result.data
+          const result = PartnerProfileSchema.safeParse(safeJson(generation.text));
+          if (!result.success) {
+            console.error('Partner kit failed schema validation:', result.error.issues);
+            return fallback('AI response did not match the profile schema. Used deterministic grounded synthesizer.');
+          }
+
+          send({ type: 'final', isAiGenerated: true, model: usedModel, data: result.data });
         });
       } catch (geminiError: unknown) {
         console.error('Gemini Partner Assistant API error:', geminiError);
-        return NextResponse.json({
-          success: true,
-          isAiGenerated: false,
-          fallbackReason: 'Gemini API call failed or timed out. Used deterministic grounded synthesizer.',
-          data: generateGroundedFallbackResponse(name, category, location, factsList, language)
-        });
+        return ndjsonResponse<PartnerResult>(async (send) =>
+          send({
+            type: 'final',
+            isAiGenerated: false,
+            fallbackReason: 'Gemini API call failed or timed out. Used deterministic grounded synthesizer.',
+            data: generateGroundedFallbackResponse(name, category, location, factsList, language)
+          })
+        );
       }
     }
 
     // When API Key is not set in .env.local, use deterministic grounded response
-    return NextResponse.json({
-      success: true,
-      isAiGenerated: false,
-      notice: 'Gemini API key not configured in .env.local. Output generated via grounded local rules engine.',
-      data: generateGroundedFallbackResponse(name, category, location, factsList, language)
-    });
+    return ndjsonResponse<PartnerResult>(async (send) =>
+      send({
+        type: 'final',
+        isAiGenerated: false,
+        fallbackReason: 'Gemini API key not configured in .env.local. Output generated via grounded local rules engine.',
+        data: generateGroundedFallbackResponse(name, category, location, factsList, language)
+      })
+    );
   } catch (error: unknown) {
     console.error('Failed to process partner assistant request:', error);
     return NextResponse.json(

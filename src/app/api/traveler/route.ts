@@ -1,7 +1,11 @@
 import { NextResponse } from 'next/server';
-import { getGemini, DEFAULT_GEMINI_MODEL, FAST_GENERATION_CONFIG, logGeminiUsage, isGeminiConfigured } from '@/lib/gemini';
+import { getGemini, DEFAULT_GEMINI_MODEL, REASONING_STREAM_CONFIG, logGeminiUsage, isGeminiConfigured } from '@/lib/gemini';
 import { CURATED_BALI_PARTNERS, type CuratedPartner } from '@/data/curatedPartners';
-import { makeItinerarySchema, toGeminiSchema, safeJson } from '@/lib/schemas';
+import { makeItinerarySchema, toGeminiSchema, safeJson, type ItineraryResponse } from '@/lib/schemas';
+import { ndjsonResponse, streamGeminiToClient } from '@/lib/streaming';
+
+/** What the client receives in the final event (AI answer or the grounded fallback). */
+type ItineraryResult = ItineraryResponse | ReturnType<typeof generateFallbackItinerary>;
 
 export async function POST(request: Request) {
   try {
@@ -68,65 +72,84 @@ CURATED LOCAL PARTNERS (GROUP A):
 ${JSON.stringify(partnersContext)}
 `;
 
-        const startedAt = Date.now();
-        const response = await ai.models.generateContent({
-          model: DEFAULT_GEMINI_MODEL,
-          contents: prompt,
-          config: {
-            ...FAST_GENERATION_CONFIG,
-            responseMimeType: 'application/json',
-            responseJsonSchema: toGeminiSchema(ItinerarySchema)
+        // Stream the answer to the browser as it is written (thought summaries first, then JSON pieces).
+        return ndjsonResponse<ItineraryResult>(async (send) => {
+          const fallback = (reason: string) =>
+            send({
+              type: 'final',
+              isAiGenerated: false,
+              fallbackReason: reason,
+              data: generateFallbackItinerary(travelerStyle, duration, pace, interests, language)
+            });
+
+          let generation;
+          const startedAt = Date.now();
+          try {
+            generation = await streamGeminiToClient(
+              ai,
+              {
+                model: DEFAULT_GEMINI_MODEL,
+                contents: prompt,
+                config: {
+                  ...REASONING_STREAM_CONFIG,
+                  responseMimeType: 'application/json',
+                  responseJsonSchema: toGeminiSchema(ItinerarySchema),
+                  abortSignal: request.signal // stop paying for tokens if the user leaves
+                }
+              },
+              send
+            );
+          } catch (geminiError) {
+            console.error('Error streaming from Gemini:', geminiError);
+            return fallback('Gemini SDK call encountered an error. Using grounded dataset fallback.');
           }
-        });
-        logGeminiUsage('traveler', DEFAULT_GEMINI_MODEL, startedAt, response.usageMetadata);
+          logGeminiUsage('traveler', DEFAULT_GEMINI_MODEL, startedAt, generation.usage);
 
-        const result = ItinerarySchema.safeParse(safeJson(response.text));
+          // Same grounding guarantees as before, applied to the complete streamed answer.
+          const result = ItinerarySchema.safeParse(safeJson(generation.text));
+          if (!result.success) {
+            console.warn('Itinerary failed schema validation:', result.error.issues);
+            return fallback('AI response did not match the itinerary schema. Using grounded dataset fallback.');
+          }
 
-        if (!result.success) {
-          console.warn('Itinerary failed schema validation:', result.error.issues);
-          return NextResponse.json({
-            success: true,
-            isAiGenerated: false,
-            fallbackReason: 'AI response did not match the itinerary schema. Using grounded dataset fallback.',
-            data: generateFallbackItinerary(travelerStyle, duration, pace, interests, language)
+          const byId = new Map(partnersContext.map((p) => [p.id, p]));
+          send({
+            type: 'final',
+            isAiGenerated: true,
+            model: DEFAULT_GEMINI_MODEL,
+            data: {
+              ...result.data,
+              recommendedPartnerIds: [...new Set(result.data.recommendedPartnerIds)],
+              days: result.data.days.map((day, i) => ({
+                ...day,
+                dayNumber: i + 1,
+                partnerName: byId.get(day.partnerId)?.name ?? ''
+              }))
+            }
           });
-        }
-
-        const byId = new Map(partnersContext.map((p) => [p.id, p]));
-        const data = {
-          ...result.data,
-          recommendedPartnerIds: [...new Set(result.data.recommendedPartnerIds)],
-          days: result.data.days.map((day, i) => ({
-            ...day,
-            dayNumber: i + 1,
-            partnerName: byId.get(day.partnerId)?.name ?? ''
-          }))
-        };
-
-        return NextResponse.json({
-          success: true,
-          isAiGenerated: true,
-          model: DEFAULT_GEMINI_MODEL,
-          data
         });
       } catch (geminiError: unknown) {
         console.error('Error invoking Gemini SDK:', geminiError);
-        return NextResponse.json({
-          success: true,
-          isAiGenerated: false,
-          fallbackReason: 'Gemini SDK call encountered an error. Using grounded dataset fallback.',
-          data: generateFallbackItinerary(travelerStyle, duration, pace, interests, language)
-        });
+        return ndjsonResponse<ItineraryResult>(async (send) =>
+          send({
+            type: 'final',
+            isAiGenerated: false,
+            fallbackReason: 'Gemini SDK call encountered an error. Using grounded dataset fallback.',
+            data: generateFallbackItinerary(travelerStyle, duration, pace, interests, language)
+          })
+        );
       }
     }
 
     // When API Key is not yet set in .env.local, provide grounded intelligent mock
-    return NextResponse.json({
-      success: true,
-      isAiGenerated: false,
-      notice: 'Gemini API key not configured in .env.local. Showing realistic grounded fallback matching the curated dataset.',
-      data: generateFallbackItinerary(travelerStyle, duration, pace, interests, language)
-    });
+    return ndjsonResponse<ItineraryResult>(async (send) =>
+      send({
+        type: 'final',
+        isAiGenerated: false,
+        fallbackReason: 'Gemini API key not configured in .env.local. Showing grounded offline demo.',
+        data: generateFallbackItinerary(travelerStyle, duration, pace, interests, language)
+      })
+    );
   } catch (error: unknown) {
     console.error('Traveler match API error:', error);
     return NextResponse.json(

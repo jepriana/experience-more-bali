@@ -50,6 +50,27 @@ export const FAST_GENERATION_CONFIG: GenerateContentConfig = {
   httpOptions: { timeout: 25_000 }
 };
 
+/**
+ * Streaming variant: the user sees text arriving, so a longer overall budget is fine.
+ * (httpOptions.timeout covers the whole streamed response, so it must outlast the full answer.)
+ */
+export const STREAMING_GENERATION_CONFIG: GenerateContentConfig = {
+  ...FAST_GENERATION_CONFIG,
+  httpOptions: { timeout: 60_000 }
+};
+
+/**
+ * Streaming + visible reasoning (traveler itinerary): the model streams short summaries of
+ * its thinking before the answer, shown live in the "AI is thinking" box.
+ * LOW (not MINIMAL) so there is actual reasoning to show; extra token room for the thoughts.
+ * If a model rejects this, the error is logged and the route falls back.
+ */
+export const REASONING_STREAM_CONFIG: GenerateContentConfig = {
+  ...STREAMING_GENERATION_CONFIG,
+  maxOutputTokens: 8192,
+  thinkingConfig: { thinkingLevel: ThinkingLevel.LOW, includeThoughts: true }
+};
+
 /** Logs where the time/tokens went: thinking vs answer vs prompt. */
 export function logGeminiUsage(label: string, model: string, startedAt: number, usage: unknown) {
   console.log(`[gemini] ${label} model=${model} took=${Date.now() - startedAt}ms`, usage);
