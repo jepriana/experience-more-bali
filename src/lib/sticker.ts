@@ -339,26 +339,45 @@ export async function drawSticker(canvas: HTMLCanvasElement, content: StickerCon
   drawStickerSync(ctx, content, logo);
 }
 
-/** Renders a 2000×2000 print-quality PNG and downloads it. */
-export async function downloadSticker(content: StickerContent) {
+/** Renders the sticker on a new square canvas of `px` pixels. */
+export async function renderSticker(content: StickerContent, px: number): Promise<HTMLCanvasElement> {
   const logo = await ready();
   const canvas = document.createElement('canvas');
-  canvas.width = 2000;
-  canvas.height = 2000;
+  canvas.width = px;
+  canvas.height = px;
   const ctx = canvas.getContext('2d');
-  if (!ctx) return;
-  ctx.setTransform(2, 0, 0, 2, 0, 0);
-  drawStickerSync(ctx, content, logo);
+  if (ctx) {
+    ctx.setTransform(px / 1000, 0, 0, px / 1000, 0, 0);
+    drawStickerSync(ctx, content, logo);
+  }
+  return canvas;
+}
 
+/** PNG data URL of the sticker, for mock-ups (T-shirt, hat, bag). */
+export async function stickerDataUrl(content: StickerContent, px = 600): Promise<string> {
+  return (await renderSticker(content, px)).toDataURL('image/png');
+}
+
+export function slugify(text: string, fallback = 'kossi'): string {
+  return text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || fallback;
+}
+
+/** Saves a canvas as a PNG file. */
+export async function downloadCanvas(canvas: HTMLCanvasElement, filename: string) {
   const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/png'));
   if (!blob) return;
-  const slug = content.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'sticker';
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `kossi-sticker-${slug}.png`;
+  a.download = filename;
   document.body.appendChild(a);
   a.click();
   a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+/** Renders a 2000×2000 print-quality PNG and downloads it. */
+export async function downloadSticker(content: StickerContent) {
+  const canvas = await renderSticker(content, 2000);
+  await downloadCanvas(canvas, `kossi-sticker-${slugify(content.title, 'sticker')}.png`);
 }

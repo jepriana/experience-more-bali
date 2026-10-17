@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { Suspense } from 'react';
 import { Sparkles, ShieldCheck } from 'lucide-react';
 import { Navbar } from '@/components/Navbar';
 import { PartnersProvider } from '@/context/PartnersContext';
@@ -17,7 +17,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <PartnersProvider>
         <SessionStateProvider>
           <div className="min-h-screen bg-stone-950 text-stone-100 flex flex-col selection:bg-emerald-500 selection:text-white">
-            <Navbar />
+            {/* usePathname inside a dynamic route (/m/[code]) must sit under Suspense */}
+            <Suspense fallback={<div className="h-16 border-b border-stone-800" />}>
+              <Navbar />
+            </Suspense>
             <main className="flex-1 pb-16">{children}</main>
             <Footer />
           </div>

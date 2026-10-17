@@ -378,7 +378,7 @@ export function DayPlanner({ trip }: { trip: TripState }) {
         </div>
       )}
 
-      <StepNav onBack={() => trip.setStep(2)} nextLabel="" sticky={false} />
+      <StepNav onBack={() => trip.setStep(2)} onNext={() => trip.setStep(4)} nextLabel={t.merch.stepGear} sticky={false} />
     </div>
   );
 }

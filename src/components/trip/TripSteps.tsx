@@ -24,9 +24,15 @@ import type { TripState } from '@/components/trip/useTrip';
 
 export function Stepper({ trip }: { trip: TripState }) {
   const { t } = useLanguage();
-  const labels = [t.trip.stepRegions, t.trip.stepCategories, t.trip.stepBasket, t.trip.stepPlan];
+  const labels = [t.trip.stepRegions, t.trip.stepCategories, t.trip.stepBasket, t.trip.stepPlan, t.merch.stepGear];
   // A step is reachable once everything before it has been chosen
-  const reachable = [true, trip.regions.length > 0, trip.categories.length > 0 && trip.regions.length > 0, trip.basket.length > 0];
+  const reachable = [
+    true,
+    trip.regions.length > 0,
+    trip.categories.length > 0 && trip.regions.length > 0,
+    trip.basket.length > 0,
+    trip.step >= 3 || Object.keys(trip.assignment).length > 0
+  ];
   const go = (i: number) => {
     if (i === 2) trip.goToBasket();
     else if (i === 3) trip.goToPlan();

@@ -2,6 +2,7 @@
 
 import { useCallback, useSyncExternalStore } from 'react';
 import { getBaliRegion, INTERNATIONAL, type BaliRegionId } from '@/data/regions';
+import type { PartnerBusinessProfile } from '@/data/partnerProfile';
 
 /**
  * Traveler and partner sign-up data, saved on this device (localStorage) so a returning
@@ -40,6 +41,8 @@ export interface PartnerAccount {
   /** optional well-known area inside the region, e.g. "Ubud" */
   area?: string;
   createdAt: string;
+  /** business profile answered through the tap menus (A–E), saved as they tap */
+  profile?: PartnerBusinessProfile;
 }
 
 interface Accounts {

@@ -1,3 +1,5 @@
+import { stage3Strings, type MemoryPageStrings, type MerchStrings, type ProfileStrings } from '@/i18n/stage3';
+
 export type Language = 'en' | 'id';
 
 export interface Translations {
@@ -346,6 +348,9 @@ export interface Translations {
     groundedEngine: string;
     poweredBy: string;
   };
+  profile: ProfileStrings;
+  merch: MerchStrings;
+  memoryPage: MemoryPageStrings;
 }
 
 export const translations: Record<Language, Translations> = {
@@ -709,7 +714,8 @@ export const translations: Record<Language, Translations> = {
       tagline: '“Don’t Just Visit. Create More Memories.”',
       groundedEngine: 'Grounded AI Engine',
       poweredBy: 'Powered by Google Gen AI SDK'
-    }
+    },
+    ...stage3Strings.en
   },
   id: {
     nav: {
@@ -1071,6 +1077,7 @@ export const translations: Record<Language, Translations> = {
       tagline: '“Jangan Hanya Berkunjung. Ciptakan Lebih Banyak Kenangan.”',
       groundedEngine: 'Mesin AI Terverifikasi',
       poweredBy: 'Didukung oleh Google Gen AI SDK'
-    }
+    },
+    ...stage3Strings.id
   }
 };
