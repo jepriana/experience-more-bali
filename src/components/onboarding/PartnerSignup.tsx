@@ -55,7 +55,7 @@ export function PartnerSignup({ onCreated }: { onCreated: (account: PartnerAccou
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* Live sticker preview (first on phones) */}
         <div className="lg:col-span-5 lg:order-2 lg:sticky lg:top-40 flex flex-col items-center gap-3 stream-in">
-          <span className="text-[11px] uppercase tracking-wider font-semibold text-emerald-400">
+          <span className="text-xs font-semibold text-emerald-400">
             {t.signup.previewLabel}
           </span>
           <StickerCanvas
@@ -79,7 +79,7 @@ export function PartnerSignup({ onCreated }: { onCreated: (account: PartnerAccou
               <Store className="w-3.5 h-3.5" />
               <span>{t.nav.tabPartner}</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">{t.signup.partnerTitle}</h1>
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-stone-50 tracking-tight">{t.signup.partnerTitle}</h1>
             <p className="text-sm text-stone-400">{t.signup.partnerSubtitle}</p>
           </div>
 
@@ -137,12 +137,12 @@ export function PartnerSignup({ onCreated }: { onCreated: (account: PartnerAccou
                         : 'bg-stone-800/70 border-stone-700 hover:border-stone-500'
                     }`}
                   >
-                    <span className="flex items-center gap-2 text-sm font-bold text-white">
+                    <span className="flex items-center gap-2 text-sm font-bold text-stone-50">
                       <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: r.color }} />
                       {r.name}
                       {selected && <Check className="w-3.5 h-3.5 text-emerald-400 ml-auto" />}
                     </span>
-                    <span className="block text-[10px] text-stone-400 truncate mt-0.5">{r.areas.slice(0, 3).join(' · ')}</span>
+                    <span className="block text-xs text-stone-400 truncate mt-0.5">{r.areas.slice(0, 3).join(' · ')}</span>
                   </button>
                 );
               })}
@@ -172,13 +172,13 @@ export function PartnerSignup({ onCreated }: { onCreated: (account: PartnerAccou
 
           <button
             type="submit"
-            className="w-full py-3.5 px-4 rounded-xl font-bold text-sm bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white shadow-lg shadow-emerald-950/50 flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-[0.99]"
+            className="w-full py-3.5 px-4 rounded-xl font-bold text-sm bg-emerald-500 hover:bg-(--action-hover) text-white shadow-lg flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-[0.99]"
           >
             <span>{t.signup.btnCreatePartner}</span>
             <ArrowRight className="w-4 h-4" />
           </button>
 
-          <p className="text-[11px] text-stone-500 flex items-start gap-1.5">
+          <p className="text-xs text-stone-500 flex items-start gap-1.5">
             <Lock className="w-3 h-3 mt-0.5 shrink-0" />
             <span>{t.signup.privacyNote}</span>
           </p>

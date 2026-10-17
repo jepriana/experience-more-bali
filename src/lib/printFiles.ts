@@ -1,6 +1,6 @@
 'use client';
 
-import { geistSans } from '@/lib/fonts';
+import { bodyFont } from '@/lib/fonts';
 import { drawQr } from '@/lib/qr';
 import { downloadCanvas, renderSticker, slugify, type StickerContent } from '@/lib/sticker';
 
@@ -10,7 +10,7 @@ import { downloadCanvas, renderSticker, slugify, type StickerContent } from '@/l
  * so nothing gets lost between WhatsApp messages.
  */
 
-const SANS = geistSans.style.fontFamily;
+const SANS = bodyFont.style.fontFamily;
 
 export interface PrintOrder {
   /** e.g. "T-shirt · Navy" */

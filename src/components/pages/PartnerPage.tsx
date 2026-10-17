@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useCallback, useState } from 'react';
+import { tabKeyNav } from '@/lib/a11y';
 import { useRouter } from 'next/navigation';
 import { useAccounts, useHydrated, partnerRegionLabel, type PartnerAccount } from '@/lib/accounts';
 import { useSessionState } from '@/context/SessionStateContext';
@@ -10,6 +11,7 @@ import { PartnerPlatform } from '@/components/partner/PartnerPlatform';
 import { PageLoading } from '@/components/pages/PageLoading';
 import { BusinessProfile } from '@/components/partner/BusinessProfile';
 import { PartnerGear } from '@/components/partner/PartnerGear';
+import { ListingStatus } from '@/components/verification/ListingStatus';
 import { useLanguage } from '@/context/LanguageContext';
 import { ClipboardList, Shirt, Wand2 } from 'lucide-react';
 
@@ -60,7 +62,9 @@ export function PartnerPage() {
   return (
     <>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 space-y-4">
+        <h1 className="sr-only">{t.nav.tabPartner}</h1>
         <AccountStrip kind="partner" />
+        <ListingStatus />
         <div className="flex gap-2 overflow-x-auto no-scrollbar" role="tablist" aria-label="Partner tools">
           {(
             [
@@ -75,10 +79,12 @@ export function PartnerPage() {
                 key={id}
                 role="tab"
                 aria-selected={on}
+                tabIndex={(on) ? 0 : -1}
+                onKeyDown={tabKeyNav}
                 onClick={() => setTab(id)}
                 className={`shrink-0 px-4 py-2.5 rounded-xl text-sm font-semibold flex items-center gap-2 border transition-all cursor-pointer ${
                   on
-                    ? 'bg-emerald-600 border-emerald-500 text-white shadow-md shadow-emerald-950/40'
+                    ? 'bg-emerald-600 border-emerald-500 text-white shadow-md'
                     : 'bg-stone-900 border-stone-800 text-stone-300 hover:border-stone-600'
                 }`}
               >

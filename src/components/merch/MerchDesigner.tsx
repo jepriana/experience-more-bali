@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { tabKeyNav } from '@/lib/a11y';
 import { Check, Download, Mail, Minus, Plus, QrCode, Shirt, ShoppingBag, Info } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { useSessionState } from '@/context/SessionStateContext';
@@ -124,7 +125,7 @@ export function MerchDesigner({
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
       {/* Mock-up */}
-      <div className="lg:col-span-6 bg-gradient-to-br from-stone-900 to-stone-950 border border-stone-800 rounded-2xl p-5 space-y-4 lg:sticky lg:top-24">
+      <div className="lg:col-span-6 bg-stone-900 border border-stone-800 rounded-2xl p-5 space-y-4 lg:sticky lg:top-24">
         <div className="aspect-square w-full max-w-md mx-auto">
           <Mockup product={state.product} colour={COLOURS[state.colour]} img={img} qrUrl={withQr ? qrUrl : null} />
         </div>
@@ -137,6 +138,8 @@ export function MerchDesigner({
                 key={p}
                 role="tab"
                 aria-selected={on}
+                tabIndex={(on) ? 0 : -1}
+                onKeyDown={tabKeyNav}
                 onClick={() => chooseProduct(p)}
                 className={`py-2.5 rounded-xl border text-sm font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer ${
                   on ? 'bg-emerald-950/70 border-emerald-500 text-emerald-200' : 'bg-stone-950 border-stone-800 text-stone-300 hover:border-stone-600'
@@ -153,7 +156,7 @@ export function MerchDesigner({
       {/* Options */}
       <div className="lg:col-span-6 space-y-4">
         <div>
-          <h2 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight">{title}</h2>
+          <h2 className="text-xl sm:text-2xl font-extrabold text-stone-50 tracking-tight">{title}</h2>
           <p className="text-sm text-stone-400 mt-1">{subtitle}</p>
         </div>
 
@@ -169,11 +172,11 @@ export function MerchDesigner({
                   aria-label={m.colours[c]}
                   title={m.colours[c]}
                   className={`w-10 h-10 rounded-full border-2 flex items-center justify-center transition-all cursor-pointer ${
-                    on ? 'border-emerald-400 scale-110 shadow-lg shadow-emerald-950/60' : 'border-stone-700 hover:border-stone-500'
+                    on ? 'border-emerald-400 scale-110 shadow-lg' : 'border-stone-700 hover:border-stone-500'
                   }`}
                   style={{ background: COLOURS[c] }}
                 >
-                  {on && <Check className={`w-4 h-4 ${c === 'white' || c === 'sand' ? 'text-stone-900' : 'text-white'}`} />}
+                  {on && <Check className={`w-4 h-4 ${c === 'white' || c === 'sand' ? 'text-black' : 'text-white'}`} />}
                 </button>
               );
             })}
@@ -195,7 +198,7 @@ export function MerchDesigner({
                   >
                     <Minus className="w-3.5 h-3.5" />
                   </button>
-                  <span className={`w-6 text-center text-sm font-bold ${qty[s] ? 'text-white' : 'text-stone-600'}`}>{qty[s]}</span>
+                  <span className={`w-6 text-center text-sm font-bold ${qty[s] ? 'text-stone-50' : 'text-stone-600'}`}>{qty[s]}</span>
                   <button
                     onClick={() => changeQty(s, 1)}
                     aria-label={`+ ${sizeLabel(s)}`}
@@ -223,7 +226,7 @@ export function MerchDesigner({
             {withQr && <Check className="w-3.5 h-3.5 text-white" />}
           </span>
           <span className="flex-1">
-            <span className="font-semibold text-white flex items-center gap-2">
+            <span className="font-semibold text-stone-50 flex items-center gap-2">
               <QrCode className="w-4 h-4 text-emerald-400" />
               {m.qrPatch}
             </span>
@@ -235,7 +238,7 @@ export function MerchDesigner({
         <div className="bg-stone-900 border border-stone-800 rounded-2xl p-4 space-y-3">
           <div className="flex items-center justify-between text-sm">
             <span className="text-stone-300 font-semibold">{heading}</span>
-            <span className={total ? 'text-white font-bold' : 'text-amber-400 text-xs'}>{total ? fill(m.total, total) : m.pickQty}</span>
+            <span className={total ? 'text-stone-50 font-bold' : 'text-amber-400 text-xs'}>{total ? fill(m.total, total) : m.pickQty}</span>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <a
@@ -243,8 +246,8 @@ export function MerchDesigner({
               target="_blank"
               rel="noopener noreferrer"
               aria-disabled={!total}
-              className={`px-4 py-3 rounded-xl font-bold text-sm bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-950/50 flex items-center justify-center gap-2 transition-all ${
-                total ? 'hover:from-emerald-400 hover:to-teal-500 active:scale-[0.99]' : 'opacity-40 pointer-events-none'
+              className={`px-4 py-3 rounded-xl font-bold text-sm bg-emerald-500 text-white shadow-lg flex items-center justify-center gap-2 transition-all ${
+                total ? 'hover:bg-(--action-hover) active:scale-[0.99]' : 'opacity-40 pointer-events-none'
               }`}
             >
               <WhatsAppIcon />
@@ -269,7 +272,7 @@ export function MerchDesigner({
             <Download className="w-4 h-4" />
             {m.downloadPrint}
           </button>
-          <p className="text-[11px] text-stone-500 flex gap-1.5">
+          <p className="text-xs text-stone-500 flex gap-1.5">
             <Info className="w-3.5 h-3.5 shrink-0 mt-px" />
             <span>
               {m.priceNote}
@@ -285,7 +288,7 @@ export function MerchDesigner({
 function Panel({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="bg-stone-900 border border-stone-800 rounded-2xl p-4 space-y-3">
-      <div className="text-[11px] uppercase tracking-wider text-stone-500 font-bold">{label}</div>
+      <div className="text-xs text-stone-500 font-bold">{label}</div>
       {children}
     </div>
   );

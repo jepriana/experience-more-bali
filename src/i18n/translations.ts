@@ -1,3 +1,4 @@
+import { verificationStrings, type VerifyStrings } from '@/i18n/verification';
 import { stage3Strings, type MemoryPageStrings, type MerchStrings, type ProfileStrings } from '@/i18n/stage3';
 
 export type Language = 'en' | 'id';
@@ -351,6 +352,7 @@ export interface Translations {
   profile: ProfileStrings;
   merch: MerchStrings;
   memoryPage: MemoryPageStrings;
+  verify: VerifyStrings;
 }
 
 export const translations: Record<Language, Translations> = {
@@ -360,11 +362,11 @@ export const translations: Record<Language, Translations> = {
       brandTagline: '“Don’t Just Visit. Create More Memories.”',
       hackathonMvp: 'Hackathon MVP',
       subTitle: 'JAPAC AI Builder Cup • AI-Powered Local Tourism Ecosystem',
-      tabTraveler: 'Traveler Platform',
+      tabTraveler: 'Plan a trip',
       tabTravelerSub: 'AI Experience Finder',
-      tabPartner: 'Partner Platform',
+      tabPartner: 'For partners',
       tabPartnerSub: 'AI Profile & Marketing',
-      tabPhygital: 'QR Memory Media',
+      tabPhygital: 'QR memories',
       tabPhygitalSub: 'Phygital Demo',
       partnersActive: 'Partners Active',
       customSuffix: 'custom',
@@ -430,7 +432,7 @@ export const translations: Record<Language, Translations> = {
       dirBadge: 'Group A Core Experience Providers',
       dirTitle: 'Curated Local Partners Master Directory',
       dirDesc:
-        'Strictly verified Destination, Accommodation, and Culinary partners. No fake listings.',
+        'Local Destination, Accommodation, Culinary and Activity partners. Look for the ✓ KOSSI Verified badge: those were checked by our team.',
       searchPlaceholder: 'Search partner, village, tag...',
       filterAll: 'All',
       filterDest: 'Destination',
@@ -446,7 +448,7 @@ export const translations: Record<Language, Translations> = {
       heroTag: '03 | Partner Platform • AI Partner Profile & Marketing Assistant',
       heroTitle: 'Grounded AI Profile & Marketing Assistant',
       heroDesc:
-        'Enter verified business facts to generate professional storytelling profiles, social media campaign copy, and gamified family missions—powered by Gemini 3.8 Flash with Structured Outputs. Strictly grounded, zero fabricated claims.',
+        'Enter verified business facts to generate professional storytelling profiles, social media campaign copy, and gamified family missions—powered by Gemini with structured outputs. Strictly grounded, zero fabricated claims.',
       groundingBadge: 'Strict Anti-Hallucination Grounding',
       structuredOutputBadge: 'Gemini Structured Output',
       oneClickPublishBadge: "One-Click 'Publish to Ecosystem'",
@@ -501,7 +503,7 @@ export const translations: Record<Language, Translations> = {
       emptyDesc:
         'Complete the verification form on the left (or click one of the quick samples: Salt, Stay, or Culinary) and click Run AI Partner Assistant.',
       emptySubdesc:
-        'Gemini 3.8 Flash will generate grounded profile descriptions, promotional copy, missions, and a full grounding audit checklist ready to publish!'
+        'Gemini will generate grounded profile descriptions, promotional copy, missions, and a full grounding audit checklist ready to publish!'
     },
     phygital: {
       heroTag: '04 | QR-Linked Memory Media • Phygital Split-Screen Demo',
@@ -715,7 +717,8 @@ export const translations: Record<Language, Translations> = {
       groundedEngine: 'Grounded AI Engine',
       poweredBy: 'Powered by Google Gen AI SDK'
     },
-    ...stage3Strings.en
+    ...stage3Strings.en,
+    verify: verificationStrings.en
   },
   id: {
     nav: {
@@ -723,11 +726,11 @@ export const translations: Record<Language, Translations> = {
       brandTagline: '“Jangan Hanya Berkunjung. Ciptakan Lebih Banyak Kenangan.”',
       hackathonMvp: 'MVP Hackathon',
       subTitle: 'JAPAC AI Builder Cup • Ekosistem Pariwisata Lokal Berbasis AI',
-      tabTraveler: 'Platform Wisatawan',
+      tabTraveler: 'Rencanakan perjalanan',
       tabTravelerSub: 'Pencari Pengalaman AI',
-      tabPartner: 'Platform Mitra',
+      tabPartner: 'Untuk mitra',
       tabPartnerSub: 'Profil & Pemasaran AI',
-      tabPhygital: 'Media Kenangan QR',
+      tabPhygital: 'Kenangan QR',
       tabPhygitalSub: 'Demo Fisik-Digital',
       partnersActive: 'Mitra Aktif',
       customSuffix: 'kustom',
@@ -793,7 +796,7 @@ export const translations: Record<Language, Translations> = {
       dirBadge: 'Penyedia Pengalaman Inti Grup A',
       dirTitle: 'Direktori Utama Mitra Lokal Terkurasi',
       dirDesc:
-        'Mitra Destinasi, Akomodasi, dan Kuliner yang diverifikasi secara ketat. Bebas data palsu.',
+        'Mitra lokal Destinasi, Akomodasi, Kuliner, dan Aktivitas. Cari lencana ✓ Terverifikasi KOSSI: mitra tersebut sudah diperiksa tim kami.',
       searchPlaceholder: 'Cari mitra, desa, tagar...',
       filterAll: 'Semua',
       filterDest: 'Destinasi',
@@ -809,7 +812,7 @@ export const translations: Record<Language, Translations> = {
       heroTag: '03 | Platform Mitra • Profil & Asisten Pemasaran AI',
       heroTitle: 'Asisten Profil & Pemasaran AI Terverifikasi',
       heroDesc:
-        'Masukkan fakta bisnis terverifikasi untuk menghasilkan profil naratif profesional, salinan kampanye media sosial, dan misi keluarga—didukung oleh Gemini 3.8 Flash dengan Output Terstruktur. Strictly grounded, bebas klaim palsu.',
+        'Masukkan fakta bisnis terverifikasi untuk menghasilkan profil naratif profesional, salinan kampanye media sosial, dan misi keluarga—didukung oleh Gemini dengan output terstruktur. Strictly grounded, bebas klaim palsu.',
       groundingBadge: 'Bebas Halusinasi & Terverifikasi',
       structuredOutputBadge: 'Output Terstruktur Gemini',
       oneClickPublishBadge: "Satu Klik 'Publikasikan ke Ekosistem'",
@@ -864,7 +867,7 @@ export const translations: Record<Language, Translations> = {
       emptyDesc:
         'Lengkapi formulir verifikasi di sebelah kiri (atau klik salah satu sampel cepat: Garam, Pondok, atau Kuliner) lalu klik Jalankan Asisten AI Mitra.',
       emptySubdesc:
-        'Gemini 3.8 Flash akan menghasilkan deskripsi profil terverifikasi, salinan promosi, misi, dan daftar periksa audit fakta yang siap dipublikasikan!'
+        'Gemini akan menghasilkan deskripsi profil terverifikasi, salinan promosi, misi, dan daftar periksa audit fakta yang siap dipublikasikan!'
     },
     phygital: {
       heroTag: '04 | Media Kenangan QR • Demo Layar-Pisah Fisik-Digital',
@@ -1078,6 +1081,7 @@ export const translations: Record<Language, Translations> = {
       groundedEngine: 'Mesin AI Terverifikasi',
       poweredBy: 'Didukung oleh Google Gen AI SDK'
     },
-    ...stage3Strings.id
+    ...stage3Strings.id,
+    verify: verificationStrings.id
   }
 };

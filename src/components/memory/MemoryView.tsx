@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
+import { VerificationBadge } from '@/components/verification/VerificationBadge';
 import Link from 'next/link';
 import { ArrowRight, Camera, Check, Copy, Download, MapPinned, Percent, ShieldCheck, TriangleAlert } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
@@ -26,9 +27,9 @@ export function MemoryView({ code }: { code: string }) {
     return (
       <div className="max-w-lg mx-auto px-4 py-16 text-center space-y-4">
         <TriangleAlert className="w-10 h-10 text-amber-400 mx-auto" />
-        <h1 className="text-2xl font-extrabold text-white">{mp.invalidTitle}</h1>
+        <h1 className="text-2xl font-extrabold text-stone-50">{mp.invalidTitle}</h1>
         <p className="text-sm text-stone-400">{mp.invalidDesc}</p>
-        <Link href="/" className="inline-flex px-5 py-3 rounded-xl font-bold text-sm bg-emerald-600 hover:bg-emerald-500 text-white">
+        <Link href="/" className="inline-flex px-5 py-3 rounded-xl font-bold text-sm bg-emerald-600 hover:bg-(--action-hover) text-white">
           {mp.goHome}
         </Link>
       </div>
@@ -53,7 +54,7 @@ export function MemoryView({ code }: { code: string }) {
             <ShieldCheck className="w-3.5 h-3.5" />
             {memory.k === 't' ? mp.travelerTag : mp.partnerTag}
           </span>
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-stone-50 tracking-tight">
             {memory.k === 't' && memory.ti ? memory.ti : memory.n}
           </h1>
           <p className="text-stone-300 flex items-center gap-2">
@@ -63,7 +64,7 @@ export function MemoryView({ code }: { code: string }) {
           {memory.k === 'p' && <PartnerDetails memory={memory} />}
           <Link
             href="/traveler"
-            className="inline-flex px-5 py-3 rounded-xl font-bold text-sm bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white shadow-lg shadow-emerald-950/50 items-center gap-2"
+            className="inline-flex px-5 py-3 rounded-xl font-bold text-sm bg-emerald-500 hover:bg-(--action-hover) text-white shadow-lg items-center gap-2"
           >
             {memory.k === 't' ? mp.ctaTraveler : mp.ctaPartner}
             <ArrowRight className="w-4 h-4" />
@@ -89,15 +90,16 @@ function PartnerDetails({ memory }: { memory: Extract<Memory, { k: 'p' }> }) {
   const { t } = useLanguage();
   return (
     <div className="space-y-3">
+      {memory.pi && <VerificationBadge partnerId={memory.pi} />}
       {!!memory.dc && (
-        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500 text-stone-950 text-sm font-extrabold">
+        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500 text-black text-sm font-extrabold">
           <Percent className="w-4 h-4" />
           {fill(t.memoryPage.discount, memory.dc)}
         </span>
       )}
       {!!memory.pr?.length && (
         <div>
-          <div className="text-[11px] uppercase tracking-wider text-stone-500 font-bold mb-2">{t.memoryPage.offers}</div>
+          <div className="text-xs text-stone-500 font-bold mb-2">{t.memoryPage.offers}</div>
           <div className="flex flex-wrap gap-2">
             {memory.pr.map((x) => (
               <span key={x} className="px-3 py-1 rounded-full bg-stone-900 border border-stone-700 text-xs text-stone-200">
@@ -138,7 +140,7 @@ function TripDays({ days }: { days: number[][] }) {
           partners.length ? (
             <div key={d} className="bg-stone-900 border border-stone-800 rounded-2xl p-4 stream-in" style={{ borderLeft: `4px solid ${DAY_COLORS[d % DAY_COLORS.length]}` }}>
               <div className="flex items-center justify-between mb-2">
-                <span className="font-bold text-white">{fill(t.memoryPage.day, d + 1)}</span>
+                <span className="font-bold text-stone-50">{fill(t.memoryPage.day, d + 1)}</span>
                 <span className="text-xs text-stone-500">{fill(t.memoryPage.places, partners.length)}</span>
               </div>
               <ul className="space-y-1.5">
@@ -146,6 +148,7 @@ function TripDays({ days }: { days: number[][] }) {
                   <li key={p.id} className="text-sm text-stone-200 flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full shrink-0" style={{ background: DAY_COLORS[d % DAY_COLORS.length] }} />
                     <span className="truncate">{p.name}</span>
+                    <VerificationBadge partnerId={p.id} compact />
                     {p.regionId && <span className="text-xs text-stone-500 shrink-0">· {getBaliRegion(p.regionId)?.name}</span>}
                   </li>
                 ))}
@@ -190,7 +193,7 @@ function ShareCard({ memory, sticker }: { memory: Memory; sticker: StickerConten
     <div className="bg-stone-900 border border-stone-800 rounded-2xl p-5 flex flex-col sm:flex-row items-center gap-5">
       <QrImage value={url} className="w-36 h-36 shrink-0 p-1" label={t.memoryPage.scanThis} />
       <div className="w-full flex-1 min-w-0 space-y-3 text-center sm:text-left">
-        <div className="font-bold text-white">{t.memoryPage.scanThis}</div>
+        <div className="font-bold text-stone-50">{t.memoryPage.scanThis}</div>
         <div className="text-xs text-stone-500 font-mono truncate">{url}</div>
         <div className="flex flex-col sm:flex-row gap-2 justify-center sm:justify-start">
           <button

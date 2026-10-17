@@ -1,6 +1,7 @@
 'use client';
 
 import React, { Fragment, useEffect, useMemo, useRef } from 'react';
+import { VerificationBadge } from '@/components/verification/VerificationBadge';
 import { AlertTriangle, Car, Lightbulb, MapPinned, Sailboat, Sparkles } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { BALI_REGIONS, getBaliRegion } from '@/data/regions';
@@ -119,7 +120,7 @@ export function DayPlanner({ trip }: { trip: TripState }) {
       {/* Controls: days + AI */}
       <div className="flex flex-col md:flex-row md:items-center gap-3 bg-stone-900 border border-stone-800 rounded-2xl p-4">
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-xs font-bold uppercase tracking-wider text-stone-300 mr-1">{t.trip.howManyDays}</span>
+          <span className="text-xs font-bold text-stone-300 mr-1">{t.trip.howManyDays}</span>
           {Array.from({ length: MAX_DAYS }, (_, i) => i + 1).map((n) => (
             <button
               key={n}
@@ -137,7 +138,7 @@ export function DayPlanner({ trip }: { trip: TripState }) {
         <button
           onClick={arrange}
           disabled={arranging}
-          className="md:ml-auto px-5 py-2.5 rounded-xl font-bold text-sm bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white shadow-lg shadow-emerald-950/50 flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-[0.99] disabled:opacity-60 disabled:cursor-wait"
+          className="md:ml-auto px-5 py-2.5 rounded-xl font-bold text-sm bg-emerald-500 hover:bg-(--action-hover) text-white shadow-lg flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-[0.99] disabled:opacity-60 disabled:cursor-wait"
         >
           {arranging ? (
             <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -171,7 +172,7 @@ export function DayPlanner({ trip }: { trip: TripState }) {
       {/* Trip title */}
       {(trip.plan || stream.partial?.tripTitle) && (
         <div className="flex flex-wrap items-center gap-2">
-          <h3 className="text-xl sm:text-2xl font-extrabold text-white">
+          <h3 className="text-xl sm:text-2xl font-extrabold text-stone-50">
             <StreamText
               text={arranging ? stream.partial?.tripTitle : trip.plan?.tripTitle}
               active={stream.activePath === 'tripTitle'}
@@ -188,12 +189,12 @@ export function DayPlanner({ trip }: { trip: TripState }) {
             <table className="w-full text-sm border-separate border-spacing-0">
               <thead>
                 <tr>
-                  <th className="sticky left-0 z-10 bg-stone-900 text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-stone-400 border-b border-stone-800 min-w-[200px]">
+                  <th className="sticky left-0 z-10 bg-stone-900 text-left px-4 py-3 text-xs font-bold text-stone-400 border-b border-stone-800 min-w-[200px]">
                     {t.trip.gridActivity}
                   </th>
                   {Array.from({ length: trip.days }, (_, d) => (
                     <th key={d} className="px-2 py-3 border-b border-stone-800 text-center min-w-[58px]">
-                      <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-white whitespace-nowrap">
+                      <span className="inline-flex items-center gap-1.5 text-xs font-bold text-stone-50 whitespace-nowrap">
                         <span className="w-2.5 h-2.5 rounded-full" style={{ background: DAY_COLORS[d % DAY_COLORS.length] }} />
                         {t.trip.dayN.replace('{n}', String(d + 1))}
                       </span>
@@ -206,8 +207,8 @@ export function DayPlanner({ trip }: { trip: TripState }) {
                   <Fragment key={region.id}>
                     <tr>
                       <td colSpan={trip.days + 1} className="sticky left-0 px-4 pt-3 pb-1 bg-stone-900">
-                        <span className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider" style={{ color: region.color }}>
-                          <span className="w-2 h-2 rounded-full" style={{ background: region.color }} />
+                        <span className="flex items-center gap-2 text-xs font-bold text-stone-300">
+                          <span className="w-2.5 h-2.5 rounded-full" style={{ background: region.color }} aria-hidden="true" />
                           {region.name}
                         </span>
                       </td>
@@ -217,8 +218,11 @@ export function DayPlanner({ trip }: { trip: TripState }) {
                       .map((s) => (
                         <tr key={s.id} className="hover:bg-stone-800/40 transition-colors">
                           <td className="sticky left-0 z-10 bg-stone-900 px-4 py-2 border-b border-stone-800/60">
-                            <div className="text-[13px] font-semibold text-stone-100 leading-tight">{s.name}</div>
-                            <div className="text-[10px] text-stone-500 flex items-center gap-1">
+                            <div className="text-[13px] font-semibold text-stone-100 leading-tight flex items-center gap-1">
+                              {s.name}
+                              <VerificationBadge partnerId={s.id} compact />
+                            </div>
+                            <div className="text-xs text-stone-500 flex items-center gap-1">
                               {s.area}
                               {s.requiresBoat && <Sailboat className="w-3 h-3 text-sky-400" />}
                             </div>
@@ -233,9 +237,9 @@ export function DayPlanner({ trip }: { trip: TripState }) {
                                   disabled={arranging}
                                   aria-pressed={on}
                                   aria-label={`${s.name} — ${t.trip.dayN.replace('{n}', String(d + 1))}`}
-                                  className="w-7 h-7 rounded-full border-2 transition-all cursor-pointer disabled:cursor-wait hover:scale-110"
+                                  className="w-7 h-7 rounded-full border-2 transition-all cursor-pointer disabled:cursor-wait"
                                   style={{
-                                    borderColor: on ? color : '#57534e',
+                                    borderColor: on ? color : '#78716c',
                                     background: on ? color : 'transparent',
                                     boxShadow: on ? `0 0 12px ${color}88` : 'none'
                                   }}
@@ -251,7 +255,7 @@ export function DayPlanner({ trip }: { trip: TripState }) {
             </table>
           </div>
           {unplanned.length > 0 && !arranging && (
-            <p className="px-4 py-2.5 text-[11px] text-amber-300 bg-amber-950/30 border-t border-amber-900/50">
+            <p className="px-4 py-2.5 text-xs text-amber-300 bg-amber-950/30 border-t border-amber-900/50">
               {t.trip.unplanned}: {unplanned.map((s) => s.name).join(', ')}
             </p>
           )}
@@ -259,7 +263,7 @@ export function DayPlanner({ trip }: { trip: TripState }) {
 
         {/* Map */}
         <div className="xl:col-span-5 xl:sticky xl:top-40 bg-stone-900 border border-stone-800 rounded-2xl p-3 shadow-xl space-y-2">
-          <div className="flex items-center gap-2 px-1 text-sm font-bold text-white">
+          <div className="flex items-center gap-2 px-1 text-sm font-bold text-stone-50">
             <MapPinned className="w-4 h-4 text-emerald-400" />
             {t.trip.mapTitle}
           </div>
@@ -271,13 +275,13 @@ export function DayPlanner({ trip }: { trip: TripState }) {
           />
           <div className="flex flex-wrap gap-1.5 px-1">
             {Array.from({ length: trip.days }, (_, d) => (
-              <span key={d} className="inline-flex items-center gap-1 text-[10px] text-stone-300 bg-stone-800 rounded-full px-2 py-0.5">
+              <span key={d} className="inline-flex items-center gap-1 text-xs text-stone-300 bg-stone-800 rounded-full px-2 py-0.5">
                 <span className="w-2 h-2 rounded-full" style={{ background: DAY_COLORS[d % DAY_COLORS.length] }} />
                 {t.trip.dayN.replace('{n}', String(d + 1))}
               </span>
             ))}
           </div>
-          <p className="text-[10px] text-stone-500 px-1">{t.trip.mapAttribution}</p>
+          <p className="text-xs text-stone-500 px-1">{t.trip.mapAttribution}</p>
         </div>
       </div>
 
@@ -294,10 +298,11 @@ export function DayPlanner({ trip }: { trip: TripState }) {
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <div className="text-[11px] font-bold uppercase tracking-wider" style={{ color }}>
+                  <div className="text-xs font-bold text-stone-400 flex items-center gap-1.5">
+                    <span className="w-2.5 h-2.5 rounded-full" style={{ background: color }} aria-hidden="true" />
                     {t.trip.dayN.replace('{n}', String(d + 1))}
                   </div>
-                  <div className="text-base font-bold text-white">
+                  <div className="text-base font-bold text-stone-50">
                     {text?.title ? (
                       <StreamText text={text.title} active={stream.activePath === `days.${d}.title`} />
                     ) : sum.route.length ? (
@@ -308,7 +313,7 @@ export function DayPlanner({ trip }: { trip: TripState }) {
                   </div>
                 </div>
                 {sum.route.length > 0 && (
-                  <span className="shrink-0 inline-flex items-center gap-1 text-[11px] font-semibold text-stone-300 bg-stone-800 border border-stone-700 rounded-full px-2.5 py-1">
+                  <span className="shrink-0 inline-flex items-center gap-1 text-xs font-semibold text-stone-300 bg-stone-800 border border-stone-700 rounded-full px-2.5 py-1">
                     <Car className="w-3.5 h-3.5" />
                     {sum.travelMinutes > 0 ? t.trip.onTheRoad.replace('{time}', formatDuration(sum.travelMinutes)) : t.trip.oneArea}
                   </span>
@@ -321,7 +326,7 @@ export function DayPlanner({ trip }: { trip: TripState }) {
                   {sum.route.map((s, i) => (
                     <li key={s.id} className="stream-in">
                       {i > 0 && (
-                        <div className="pl-3 py-0.5 text-[10px] text-stone-500 flex items-center gap-1">
+                        <div className="pl-3 py-0.5 text-xs text-stone-500 flex items-center gap-1">
                           <span className="w-px h-3 bg-stone-700 mr-1.5" />
                           {formatDuration(travelMinutes(sum.route[i - 1], s))}
                           {sum.route[i - 1].requiresBoat !== s.requiresBoat && <Sailboat className="w-3 h-3 text-sky-400" />}
@@ -329,13 +334,13 @@ export function DayPlanner({ trip }: { trip: TripState }) {
                       )}
                       <div className="flex items-center gap-2 text-[13px] text-stone-200">
                         <span
-                          className="w-5 h-5 rounded-full text-[10px] font-bold text-white flex items-center justify-center shrink-0"
+                          className="w-5 h-5 rounded-full text-xs font-bold text-stone-50 flex items-center justify-center shrink-0"
                           style={{ background: color }}
                         >
                           {i + 1}
                         </span>
                         <span className="truncate">{s.name}</span>
-                        <span className="text-[10px] text-stone-500 shrink-0">{s.area}</span>
+                        <span className="text-xs text-stone-500 shrink-0">{s.area}</span>
                       </div>
                     </li>
                   ))}
@@ -345,7 +350,7 @@ export function DayPlanner({ trip }: { trip: TripState }) {
               {sum.warnings.length > 0 && (
                 <ul className="space-y-1">
                   {sum.warnings.map((w) => (
-                    <li key={w} className="flex items-start gap-1.5 text-[11px] text-amber-200 bg-amber-950/40 border border-amber-900/50 rounded-lg px-2.5 py-1.5">
+                    <li key={w} className="flex items-start gap-1.5 text-xs text-amber-200 bg-amber-950/40 border border-amber-900/50 rounded-lg px-2.5 py-1.5">
                       {w === 'boat' ? <Sailboat className="w-3.5 h-3.5 shrink-0 mt-px" /> : <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-px" />}
                       {warningText(w, sum.regions.length)}
                     </li>

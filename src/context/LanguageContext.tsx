@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useCallback, useSyncExternalStore } from 'react';
+import React, { createContext, useContext, useCallback, useSyncExternalStore, useEffect } from 'react';
 import { Language, Translations, translations } from '@/i18n/translations';
 
 interface LanguageContextType {
@@ -74,6 +74,11 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     const nextLang = (cachedLang ?? getSnapshot()) === 'en' ? 'id' : 'en';
     setLanguage(nextLang);
   }, [setLanguage]);
+
+  // Screen readers pick their voice from <html lang>, so keep it in sync with the toggle
+  useEffect(() => {
+    document.documentElement.lang = language;
+  }, [language]);
 
   return (
     <LanguageContext.Provider

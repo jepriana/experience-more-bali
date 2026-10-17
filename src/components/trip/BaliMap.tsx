@@ -36,7 +36,7 @@ export function BaliMap({
     <svg
       viewBox={`0 0 ${BALI_MAP_WIDTH} ${BALI_MAP_HEIGHT}`}
       className="w-full h-auto select-none"
-      role="img"
+      role={interactive ? 'group' : 'img'}
       aria-label="Map of Bali"
     >
       <defs>
@@ -55,7 +55,7 @@ export function BaliMap({
             d={BALI_REGION_PATHS[r.id]}
             fill={r.color}
             fillOpacity={opacity}
-            stroke={selected ? '#fafaf9' : '#0c0a09'}
+            style={{ stroke: selected ? 'var(--map-edge-selected)' : 'var(--map-edge)' }}
             strokeWidth={selected ? 2.5 : 1.5}
             strokeLinejoin="round"
             className={interactive ? 'cursor-pointer transition-[fill-opacity,filter] duration-200 hover:brightness-125 focus:outline-none focus-visible:brightness-150' : undefined}
@@ -93,9 +93,9 @@ export function BaliMap({
             dominantBaseline="middle"
             fontSize={r.id === 'denpasar' ? 15 : 19}
             fontWeight={700}
-            fill={selected || !anySelected ? '#fafaf9' : '#a8a29e'}
-            stroke="#0c0a09"
+            style={{ fill: selected || !anySelected ? 'var(--map-label)' : 'var(--map-label-dim)', stroke: 'var(--map-halo)' }}
             strokeWidth={4}
+            strokeLinejoin="round"
             paintOrder="stroke"
             pointerEvents="none"
           >
@@ -132,7 +132,7 @@ export function BaliMap({
         const color = planned ? DAY_COLORS[day % DAY_COLORS.length] : '#78716c';
         return (
           <g key={s.id} filter="url(#pin-shadow)" className="stream-in">
-            <circle cx={x} cy={y} r={13} fill={color} stroke="#fafaf9" strokeWidth={3} />
+            <circle cx={x} cy={y} r={13} fill={color} style={{ stroke: 'var(--map-pin-ring)' }} strokeWidth={3} />
             <text
               x={x}
               y={y + 0.5}

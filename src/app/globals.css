@@ -1,20 +1,271 @@
 @import "tailwindcss";
 
+/*
+ * Design tokens — the original dark stone + emerald palette, kept minimal and accessible.
+ * Only a few shades are nudged within the same families so that all text meets WCAG AA:
+ *   stone-500/600 (muted text) are a touch lighter, and the solid emerald/teal/amber fills
+ *   behind white text are one step deeper (5:1 or better).
+ */
 :root {
   --background: #0c0a09;
   --foreground: #f5f5f4;
+  color-scheme: dark;
+
+  /* semantic tokens used outside Tailwind classes */
+  --action-hover: #065f46;
+  --focus: #34d399;
+  --on-focus: #0c0a09;
+  --field-bg: #1c1917;
+  --field-border: #78716c;
+  --field-border-hover: #a8a29e;
+  --field-invalid: #f87171;
+  --placeholder: #97918b;
+  --selection-bg: #10b981;
+  --selection-fg: #ffffff;
+  --shimmer-a: #292524;
+  --shimmer-b: #44403c;
+  --glow-a: rgba(6, 95, 70, 0.6);
+  --glow-b: rgba(52, 211, 153, 0.7);
+  --map-label: #fafaf9;
+  --map-label-dim: #a8a29e;
+  --map-halo: #0c0a09;
+  --map-edge: #0c0a09;
+  --map-edge-selected: #fafaf9;
+  --map-pin-ring: #fafaf9;
+}
+
+@theme {
+  --color-stone-500: #97918b;
+  --color-stone-600: #8a837e;
+
+  --color-emerald-500: #047857;
+  --color-emerald-600: #047857;
+  --color-emerald-700: #065f46;
+  --color-teal-500: #0f766e;
+  --color-teal-600: #0f766e;
+  --color-amber-600: #b45309;
+
+  /* flatter, smaller corners and quiet elevation */
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.625rem;
+  --radius-2xl: 0.75rem;
+  --radius-3xl: 1rem;
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.25);
+  --shadow-md: 0 1px 3px rgb(0 0 0 / 0.3);
+  --shadow-lg: 0 2px 8px rgb(0 0 0 / 0.3);
+  --shadow-xl: 0 4px 16px rgb(0 0 0 / 0.35);
+  --shadow-2xl: 0 12px 32px rgb(0 0 0 / 0.45);
+
+  /* 13px minimum for small text */
+  --text-xs: 0.8125rem;
+  --text-xs--line-height: 1.45;
+}
+
+/*
+ * Light mode ("morning in the rice terraces"): the same components, with the Tailwind
+ * colour scales remapped by ROLE — stone-950 = page, stone-900 = surface, stone-800/700 = lines,
+ * stone-500…50 = text from muted to ink; emerald-950/900 = tints, emerald-600/500 = action
+ * fill, emerald-400…50 = green text. All text pairs meet WCAG AA.
+ */
+:root[data-theme='light'] {
+  --background: #f6f7f5;
+  --foreground: #18211d;
+  color-scheme: light;
+
+  --action-hover: #134a35;
+  --focus: #1d6b4c;
+  --on-focus: #ffffff;
+  --field-bg: #ffffff;
+  --field-border: #858f89;
+  --field-border-hover: #57625c;
+  --field-invalid: #b42318;
+  --placeholder: #66716b;
+  --selection-bg: #d6eadf;
+  --selection-fg: #0f3d2b;
+  --shimmer-a: #e9ece9;
+  --shimmer-b: #f4f6f4;
+  --glow-a: #a9cfbb;
+  --glow-b: #1d6b4c;
+  --map-label: #18211d;
+  --map-label-dim: #66716b;
+  --map-halo: #ffffff;
+  --map-edge: #ffffff;
+  --map-edge-selected: #18211d;
+  --map-pin-ring: #ffffff;
+
+  --color-stone-50: #18211d;
+  --color-stone-100: #1e2722;
+  --color-stone-200: #2a332e;
+  --color-stone-300: #3b4540;
+  --color-stone-400: #4a554f;
+  --color-stone-500: #57625c;
+  --color-stone-600: #66716b;
+  --color-stone-700: #cbd2cd;
+  --color-stone-800: #e1e6e2;
+  --color-stone-900: #ffffff;
+  --color-stone-950: #f6f7f5;
+
+  --color-emerald-50: #0f3d2b;
+  --color-emerald-100: #134a35;
+  --color-emerald-200: #134a35;
+  --color-emerald-300: #17583f;
+  --color-emerald-400: #17583f;
+  --color-emerald-500: #175e42;
+  --color-emerald-600: #1d6b4c;
+  --color-emerald-700: #8dbfa5;
+  --color-emerald-800: #a9cfbb;
+  --color-emerald-900: #d6eadf;
+  --color-emerald-950: #e9f3ee;
+
+  --color-teal-50: #0f3d2b;
+  --color-teal-100: #134a35;
+  --color-teal-200: #134a35;
+  --color-teal-300: #17583f;
+  --color-teal-400: #17583f;
+  --color-teal-500: #175e42;
+  --color-teal-600: #1d6b4c;
+  --color-teal-700: #8dbfa5;
+  --color-teal-800: #a9cfbb;
+  --color-teal-900: #d6eadf;
+  --color-teal-950: #e9f3ee;
+
+  --color-amber-50: #5c3f00;
+  --color-amber-100: #5c3f00;
+  --color-amber-200: #5c3f00;
+  --color-amber-300: #6f4c00;
+  --color-amber-400: #6f4c00;
+  --color-amber-500: #e5b53a;
+  --color-amber-600: #9a5c00;
+  --color-amber-700: #e4c46e;
+  --color-amber-800: #ecd38f;
+  --color-amber-900: #f6e7b8;
+  --color-amber-950: #fbf4de;
+
+  --color-orange-400: #8a3b00;
+  --color-orange-950: #fdf0e6;
+
+  --color-red-50: #7f1a13;
+  --color-red-100: #7f1a13;
+  --color-red-200: #7f1a13;
+  --color-red-300: #a3221a;
+  --color-red-400: #a3221a;
+  --color-red-500: #b42318;
+  --color-red-600: #b42318;
+  --color-red-700: #f0aba3;
+  --color-red-800: #f0aba3;
+  --color-red-900: #f8d2cd;
+  --color-red-950: #fdeceb;
+
+  --color-rose-500: #a8244a;
+  --color-rose-600: #a8244a;
+
+  --color-sky-300: #1b4f74;
+  --color-sky-400: #1b4f74;
+  --color-sky-800: #b9d3e6;
+  --color-sky-950: #e8f1f8;
+  --color-indigo-300: #33408f;
+  --color-indigo-800: #c5cbf0;
+  --color-indigo-950: #eef0fb;
+
+  --shadow-sm: 0 1px 2px rgb(24 33 29 / 0.06);
+  --shadow-md: 0 1px 3px rgb(24 33 29 / 0.08);
+  --shadow-lg: 0 2px 8px rgb(24 33 29 / 0.08);
+  --shadow-xl: 0 4px 16px rgb(24 33 29 / 0.08);
+  --shadow-2xl: 0 12px 32px rgb(24 33 29 / 0.12);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-body);
+  --font-mono: var(--font-body-mono);
+}
+
+html {
+  background: var(--background);
+}
+
+/* Theme switch: colours change smoothly, not abruptly (skipped with reduced motion) */
+body,
+header,
+footer {
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
+  line-height: 1.55;
+  font-feature-settings: 'kern';
+  text-rendering: optimizeLegibility;
+}
+
+/* ───────── Accessibility ───────── */
+
+/* One clear, high-contrast focus ring for every keyboard-focusable element */
+:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline-offset: 0;
+}
+
+.skip-link {
+  position: absolute;
+  left: 1rem;
+  top: -4rem;
+  z-index: 100;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  background: var(--focus);
+  color: var(--on-focus);
+  font-weight: 700;
+}
+.skip-link:focus {
+  top: 1rem;
+}
+
+/* Every text field looks the same, with a border that meets the 3:1 contrast rule for
+   form controls. Unlayered, so it wins over the per-component utility classes. */
+input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file']):not([type='color']),
+select,
+textarea {
+  background-color: var(--field-bg);
+  border-color: var(--field-border);
+  color: var(--foreground);
+}
+input:not([type='checkbox']):not([type='radio']):hover,
+select:hover,
+textarea:hover {
+  border-color: var(--field-border-hover);
+}
+input:not([type='checkbox']):not([type='radio']):focus,
+select:focus,
+textarea:focus {
+  border-color: var(--focus);
+}
+input[aria-invalid='true'],
+select[aria-invalid='true'] {
+  border-color: var(--field-invalid);
+}
+
+button:disabled,
+[aria-disabled='true'] {
+  cursor: not-allowed;
+}
+
+::placeholder {
+  color: var(--placeholder);
+  opacity: 1;
+}
+
+::selection {
+  background: var(--selection-bg);
+  color: var(--selection-fg);
 }
 
 /* ───────── Streaming AI UI ───────── */
@@ -52,8 +303,7 @@ body {
   margin-left: 2px;
   vertical-align: -0.15em;
   border-radius: 1px;
-  background: #34d399;
-  box-shadow: 0 0 8px #34d39999;
+  background: var(--focus);
   animation: caret-blink 1s steps(1) infinite;
 }
 
@@ -67,21 +317,19 @@ body {
   }
 }
 .shimmer {
-  background: linear-gradient(90deg, #292524 0%, #44403c 50%, #292524 100%);
+  background: linear-gradient(90deg, var(--shimmer-a) 0%, var(--shimmer-b) 50%, var(--shimmer-a) 100%);
   background-size: 200% 100%;
   animation: shimmer 1.6s ease-in-out infinite;
 }
 
-/* Soft glow around the panel while the AI is working */
+/* While the AI works, the panel border breathes gently (no glow) */
 @keyframes thinking-glow {
   0%,
   100% {
-    box-shadow: 0 0 0 0 rgba(52, 211, 153, 0);
-    border-color: rgba(6, 95, 70, 0.6);
+    border-color: var(--glow-a);
   }
   50% {
-    box-shadow: 0 0 24px 0 rgba(52, 211, 153, 0.12);
-    border-color: rgba(16, 185, 129, 0.6);
+    border-color: var(--glow-b);
   }
 }
 .thinking-glow {
@@ -112,10 +360,14 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .sticker-pop,
-  .stream-in,
-  .shimmer,
-  .thinking-glow,
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
   .stream-caret {
     animation: none;
   }

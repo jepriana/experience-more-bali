@@ -46,14 +46,14 @@ export function SupportPlanPanel({ profile }: { profile: PartnerBusinessProfile 
   const status = streaming && stream.partial ? (stream.partial.actions?.length ? p.statusSteps : p.statusPrioritising) : null;
 
   return (
-    <section className="bg-gradient-to-br from-stone-900 to-emerald-950/40 border border-emerald-900/60 rounded-2xl p-5 space-y-4">
+    <section className=" bg-stone-900 border border-emerald-900/60 rounded-2xl p-5 space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-start gap-3">
-          <span className="w-8 h-8 shrink-0 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
+          <span className="w-8 h-8 shrink-0 rounded-lg bg-emerald-500 flex items-center justify-center">
             <Wand2 className="w-4 h-4 text-white" />
           </span>
           <div>
-            <h3 className="font-bold text-white flex items-center gap-2 flex-wrap">
+            <h3 className="font-bold text-stone-50 flex items-center gap-2 flex-wrap">
               {p.planTitle}
               {!streaming && <AiSourceBadge meta={saved} liveLabel={t.stream.liveAi} offlineLabel={t.stream.offlineDemo} />}
             </h3>
@@ -63,7 +63,7 @@ export function SupportPlanPanel({ profile }: { profile: PartnerBusinessProfile 
         <button
           onClick={build}
           disabled={streaming}
-          className="shrink-0 px-5 py-2.5 rounded-xl font-bold text-sm bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white shadow-lg shadow-emerald-950/50 flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-[0.98] disabled:opacity-50 disabled:cursor-wait"
+          className="shrink-0 px-5 py-2.5 rounded-xl font-bold text-sm bg-emerald-500 hover:bg-(--action-hover) text-white shadow-lg flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-[0.98] disabled:opacity-50 disabled:cursor-wait"
         >
           {saved && !streaming ? <RotateCcw className="w-4 h-4" /> : <Sparkles className="w-4 h-4" />}
           {streaming ? p.planWriting : saved ? p.btnPlanAgain : p.btnPlan}
@@ -120,17 +120,17 @@ export function SupportPlanPanel({ profile }: { profile: PartnerBusinessProfile 
                 <article key={i} className="bg-stone-950/70 border border-stone-800 rounded-xl p-4 space-y-3 stream-in">
                   <div className="flex flex-wrap items-center gap-2">
                     {channelLabel && (
-                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-stone-800 text-stone-300 border border-stone-700 font-semibold">
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-stone-800 text-stone-300 border border-stone-700 font-semibold">
                         {channelLabel}
                       </span>
                     )}
                     {a.effort && (
-                      <span className={`text-[10px] px-2 py-0.5 rounded-full border font-semibold ${EFFORT_STYLE[a.effort]}`}>
+                      <span className={`text-xs px-2 py-0.5 rounded-full border font-semibold ${EFFORT_STYLE[a.effort]}`}>
                         {p.effort[a.effort]}
                       </span>
                     )}
                   </div>
-                  <h4 className="font-bold text-white">
+                  <h4 className="font-bold text-stone-50">
                     <StreamText text={a.title} active={at('title')} />
                   </h4>
                   {a.why && (
@@ -142,7 +142,7 @@ export function SupportPlanPanel({ profile }: { profile: PartnerBusinessProfile 
                     <ol className="space-y-1.5">
                       {a.steps.map((step, j) => (
                         <li key={j} className="flex gap-2 text-sm text-stone-200">
-                          <span className="w-5 h-5 shrink-0 rounded-full bg-emerald-900 text-emerald-300 text-[11px] font-bold flex items-center justify-center">
+                          <span className="w-5 h-5 shrink-0 rounded-full bg-emerald-900 text-emerald-300 text-xs font-bold flex items-center justify-center">
                             {j + 1}
                           </span>
                           <span>
@@ -169,7 +169,7 @@ export function SupportPlanPanel({ profile }: { profile: PartnerBusinessProfile 
 
         {!!plan?.firstWeek?.length && (
           <div className="bg-amber-950/30 border border-amber-800/50 rounded-xl p-4 stream-in">
-            <div className="text-xs font-bold uppercase tracking-wider text-amber-300 flex items-center gap-2 mb-2">
+            <div className="text-xs font-bold text-amber-300 flex items-center gap-2 mb-2">
               <CalendarCheck className="w-4 h-4" />
               {p.firstWeek}
             </div>
@@ -184,7 +184,7 @@ export function SupportPlanPanel({ profile }: { profile: PartnerBusinessProfile 
           </div>
         )}
 
-        {!streaming && saved?.fallbackReason && <p className="text-[11px] text-stone-500">{saved.fallbackReason}</p>}
+        {!streaming && saved?.fallbackReason && <p className="text-xs text-stone-500">{saved.fallbackReason}</p>}
       </div>
     </section>
   );

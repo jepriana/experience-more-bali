@@ -1,6 +1,6 @@
 'use client';
 
-import { geistSans, stickerScript } from '@/lib/fonts';
+import { bodyFont, stickerScript } from '@/lib/fonts';
 
 /**
  * Draws a KOSSI Adventure "memory sticker" on a canvas.
@@ -41,7 +41,7 @@ function loadLogo(): Promise<HTMLImageElement> {
 }
 
 const SCRIPT = stickerScript.style.fontFamily;
-const SANS = geistSans.style.fontFamily;
+const SANS = bodyFont.style.fontFamily;
 
 /** Wait for the logo and fonts, so the first draw already looks right. */
 async function ready(): Promise<HTMLImageElement | null> {
@@ -200,9 +200,9 @@ function drawStickerSync(ctx: CanvasRenderingContext2D, c: StickerContent, logo:
 
   // die-cut white border with shadow
   ctx.save();
-  ctx.shadowColor = 'rgba(0,0,0,0.35)';
-  ctx.shadowBlur = 28;
-  ctx.shadowOffsetY = 10;
+  ctx.shadowColor = 'rgba(0,0,0,0.22)';
+  ctx.shadowBlur = 14;
+  ctx.shadowOffsetY = 6;
   ctx.fillStyle = '#ffffff';
   roundedRect(ctx, 22, 34, 956, 940, 150);
   ctx.fill();

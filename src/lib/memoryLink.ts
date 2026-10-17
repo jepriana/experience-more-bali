@@ -31,7 +31,9 @@ const PartnerMemory = z.object({
   /** discount % */
   dc: z.number().int().min(0).max(100).optional(),
   /** products / services */
-  pr: z.array(z.string().max(60)).max(6).optional()
+  pr: z.array(z.string().max(60)).max(6).optional(),
+  /** published listing id — lets the page show the live verification status */
+  pi: z.string().max(80).optional()
 });
 
 const MemorySchema = z.discriminatedUnion('k', [TravelerMemory, PartnerMemory]);

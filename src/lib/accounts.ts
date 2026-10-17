@@ -43,6 +43,8 @@ export interface PartnerAccount {
   createdAt: string;
   /** business profile answered through the tap menus (A–E), saved as they tap */
   profile?: PartnerBusinessProfile;
+  /** id of the listing they published from the AI marketing studio (for its verification status) */
+  publishedPartnerId?: string;
 }
 
 interface Accounts {

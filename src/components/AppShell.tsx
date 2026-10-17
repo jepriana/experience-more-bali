@@ -1,9 +1,9 @@
 'use client';
 
-import React, { Suspense } from 'react';
-import { Sparkles, ShieldCheck } from 'lucide-react';
+import React, { Suspense, useEffect, useState } from 'react';
+import Link from 'next/link';
 import { Navbar } from '@/components/Navbar';
-import { PartnersProvider } from '@/context/PartnersContext';
+import { PartnersProvider, usePartners } from '@/context/PartnersContext';
 import { LanguageProvider, useLanguage } from '@/context/LanguageContext';
 import { SessionStateProvider } from '@/context/SessionStateContext';
 
@@ -16,12 +16,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     <LanguageProvider>
       <PartnersProvider>
         <SessionStateProvider>
-          <div className="min-h-screen bg-stone-950 text-stone-100 flex flex-col selection:bg-emerald-500 selection:text-white">
+          <div className="min-h-screen bg-stone-950 text-stone-50 flex flex-col">
+            <SkipLink />
             {/* usePathname inside a dynamic route (/m/[code]) must sit under Suspense */}
-            <Suspense fallback={<div className="h-16 border-b border-stone-800" />}>
+            <Suspense fallback={<div className="h-[61px] bg-stone-900 border-b border-stone-800" />}>
               <Navbar />
             </Suspense>
-            <main className="flex-1 pb-16">{children}</main>
+            <main id="main" tabIndex={-1} className="flex-1 pb-16 focus:outline-none">
+              {children}
+            </main>
             <Footer />
           </div>
         </SessionStateProvider>
@@ -30,30 +33,61 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   );
 }
 
-function Footer() {
-  const { t } = useLanguage();
+function SkipLink() {
+  const { language } = useLanguage();
   return (
-    <footer className="border-t border-stone-800 bg-stone-950 text-stone-400 py-10 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6 text-xs">
-        <div className="flex flex-col sm:flex-row items-center gap-3 text-center sm:text-left">
-          <span className="font-bold text-stone-200">{t.footer.brandTitle}</span>
-          <span className="hidden sm:inline text-stone-600">•</span>
-          <span>{t.footer.eventTag}</span>
-          <span className="hidden sm:inline text-stone-600">•</span>
-          <span className="text-emerald-400 font-medium">{t.footer.tagline}</span>
-        </div>
+    <a href="#main" className="skip-link">
+      {language === 'id' ? 'Langsung ke konten' : 'Skip to content'}
+    </a>
+  );
+}
 
-        <div className="flex items-center gap-4 text-stone-400">
-          <span className="flex items-center gap-1.5">
-            <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-            {t.footer.groundedEngine}
+function Footer() {
+  const { t, language } = useLanguage();
+  const { partners } = usePartners();
+  const [aiReady, setAiReady] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    fetch('/api/status')
+      .then((res) => res.json())
+      .then((data) => setAiReady(!!data?.configured))
+      .catch(() => setAiReady(false));
+  }, []);
+
+  const aiLabel =
+    aiReady === null
+      ? ''
+      : aiReady
+        ? language === 'id'
+          ? 'AI terhubung (Gemini)'
+          : 'AI connected (Gemini)'
+        : language === 'id'
+          ? 'AI offline — jawaban contoh'
+          : 'AI offline — showing sample answers';
+
+  return (
+    <footer className="border-t border-stone-800 py-8 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4 text-sm text-stone-500">
+        <p>
+          <span className="font-semibold text-stone-200">{t.footer.brandTitle}</span>
+          <span className="mx-2" aria-hidden="true">/</span>
+          {t.footer.eventTag}
+          <span className="mx-2" aria-hidden="true">/</span>
+          <Link href="/admin" className="underline underline-offset-4 decoration-stone-700 hover:text-stone-200">
+            {t.verify.adminFooterLink}
+          </Link>
+        </p>
+        <p className="flex flex-wrap items-center gap-x-5 gap-y-1">
+          <span>
+            {partners.length} {language === 'id' ? 'mitra' : 'partners'}
           </span>
-          <span>•</span>
-          <span className="flex items-center gap-1.5">
-            <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
-            {t.footer.poweredBy}
-          </span>
-        </div>
+          {aiLabel && (
+            <span className="inline-flex items-center gap-2" role="status">
+              <span className={`w-2 h-2 rounded-full ${aiReady ? 'bg-emerald-400' : 'bg-amber-400'}`} aria-hidden="true" />
+              {aiLabel}
+            </span>
+          )}
+        </p>
       </div>
     </footer>
   );

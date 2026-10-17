@@ -73,17 +73,17 @@ export function AiSourceBadge({
   if (!meta) return null;
   if (meta.isAiGenerated) {
     return (
-      <span className="inline-flex items-center gap-1.5 text-[10px] px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-300 border border-emerald-800 font-mono">
+      <span className="inline-flex items-center gap-1.5 text-xs px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-300 border border-emerald-800 ">
         <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
         {liveLabel}
-        {meta.model && <span className="text-emerald-500/80">· {meta.model}</span>}
+        {meta.model && <span className="text-emerald-400 font-normal">· {meta.model}</span>}
       </span>
     );
   }
   return (
     <span
       title={meta.fallbackReason}
-      className="inline-flex items-center gap-1.5 text-[10px] px-2 py-0.5 rounded-full bg-stone-800 text-stone-300 border border-stone-700 font-mono cursor-help"
+      className="inline-flex items-center gap-1.5 text-xs px-2 py-0.5 rounded-full bg-stone-800 text-stone-300 border border-stone-700 cursor-help"
     >
       <CloudOff className="w-3 h-3" />
       {offlineLabel}
@@ -149,7 +149,7 @@ export function ThinkingPanel({
     if (!thoughts.trim()) return null;
     return (
       <details className="group bg-stone-900/70 border border-stone-800 rounded-2xl px-4 py-3 text-xs stream-in">
-        <summary className="flex items-center gap-2 cursor-pointer list-none text-stone-300 hover:text-white select-none">
+        <summary className="flex items-center gap-2 cursor-pointer list-none text-stone-300 hover:text-stone-50 select-none">
           <BrainCircuit className="w-4 h-4 text-emerald-400" />
           <span className="font-semibold">{doneTitle}</span>
           <ChevronDown className="w-4 h-4 ml-auto transition-transform group-open:rotate-180" />
@@ -165,7 +165,7 @@ export function ThinkingPanel({
 
   return (
     <div
-      className="thinking-glow bg-gradient-to-br from-stone-900 via-stone-900 to-emerald-950/50 border rounded-2xl p-4 sm:p-5 space-y-3 stream-in"
+      className="thinking-glow bg-stone-900 border rounded-2xl p-4 sm:p-5 space-y-3 stream-in"
       role="status"
       aria-live="polite"
     >
@@ -174,11 +174,11 @@ export function ThinkingPanel({
           <span className="absolute inline-flex w-full h-full rounded-full bg-emerald-400 opacity-60 animate-ping" />
           <span className="relative inline-flex w-2.5 h-2.5 rounded-full bg-emerald-400" />
         </span>
-        <span className="text-xs font-bold text-white flex items-center gap-1.5">
+        <span className="text-xs font-bold text-stone-50 flex items-center gap-1.5">
           <BrainCircuit className="w-4 h-4 text-emerald-400" />
           {title}
         </span>
-        <span key={currentStatus} className="ml-auto text-[11px] text-emerald-300/90 stream-in truncate">
+        <span key={currentStatus} className="ml-auto text-xs text-emerald-300/90 stream-in truncate">
           {currentStatus}
         </span>
       </div>
@@ -186,13 +186,13 @@ export function ThinkingPanel({
       {thoughts.trim() ? (
         // flex-col-reverse keeps the newest reasoning pinned to the bottom as text arrives
         <div className="fade-top-mask max-h-32 overflow-hidden flex flex-col-reverse">
-          <div className="text-[11px] leading-relaxed space-y-1">
+          <div className="text-xs leading-relaxed space-y-1">
             <ThoughtText text={thoughts} />
           </div>
         </div>
       ) : (
-        <div className="flex items-center gap-2 text-[11px] text-stone-400">
-          <Sparkles className="w-3.5 h-3.5 text-emerald-500 animate-pulse" />
+        <div className="flex items-center gap-2 text-xs text-stone-400">
+          <Sparkles className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
           <span key={tick} className="stream-in">
             {idleStatuses[tick % Math.max(idleStatuses.length, 1)]}
           </span>
@@ -238,7 +238,7 @@ export function StreamErrorBanner({
         <button
           onClick={onDismiss}
           aria-label={dismissLabel}
-          className="p-1 rounded-lg text-red-300 hover:text-white hover:bg-red-900/60 cursor-pointer transition-colors"
+          className="p-1 rounded-lg text-red-300 hover:text-stone-50 hover:bg-red-900/60 cursor-pointer transition-colors"
         >
           <X className="w-3.5 h-3.5" />
         </button>

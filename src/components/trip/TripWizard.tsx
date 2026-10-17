@@ -26,7 +26,7 @@ export function TripWizard() {
         {trip.step > 0 && (
           <button
             onClick={trip.startOver}
-            className="shrink-0 px-3 py-2 rounded-lg text-xs font-medium text-stone-400 hover:text-white hover:bg-stone-800 flex items-center gap-1.5 cursor-pointer transition-colors"
+            className="shrink-0 px-3 py-2 rounded-lg text-xs font-medium text-stone-400 hover:text-stone-50 hover:bg-stone-800 flex items-center gap-1.5 cursor-pointer transition-colors"
           >
             <RotateCcw className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">{t.trip.startOver}</span>

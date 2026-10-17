@@ -81,7 +81,7 @@ export function BusinessProfile() {
       {/* Header + progress */}
       <div className="bg-stone-900 border border-stone-800 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center gap-4 justify-between">
         <div>
-          <h2 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight">{p.title}</h2>
+          <h2 className="text-xl sm:text-2xl font-extrabold text-stone-50 tracking-tight">{p.title}</h2>
           <p className="text-sm text-stone-400 mt-1">{p.subtitle}</p>
         </div>
         <div className="shrink-0 min-w-44">
@@ -95,7 +95,7 @@ export function BusinessProfile() {
             )}
           </div>
           <div className="h-2 rounded-full bg-stone-800 overflow-hidden">
-            <div className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 transition-all duration-500" style={{ width: `${(done / 5) * 100}%` }} />
+            <div className="h-full bg-emerald-500 transition-all duration-500" style={{ width: `${(done / 5) * 100}%` }} />
           </div>
         </div>
       </div>
@@ -113,7 +113,7 @@ export function BusinessProfile() {
                 aria-pressed={on}
                 className={`p-3 rounded-xl border text-sm font-semibold flex flex-col items-center gap-2 transition-all cursor-pointer ${
                   on
-                    ? 'bg-emerald-950/70 border-emerald-500 text-emerald-200 shadow-lg shadow-emerald-950/40'
+                    ? 'bg-emerald-950/70 border-emerald-500 text-emerald-200 shadow-lg'
                     : 'bg-stone-950 border-stone-800 text-stone-300 hover:border-stone-600'
                 }`}
               >
@@ -131,7 +131,7 @@ export function BusinessProfile() {
           />
         )}
         <div className="pt-1">
-          <div className="text-[11px] uppercase tracking-wider text-stone-500 font-bold mb-2">{p.secAFacilities}</div>
+          <div className="text-xs text-stone-500 font-bold mb-2">{p.secAFacilities}</div>
           <Chips items={FACILITIES} selected={profile.facilities} onToggle={(x) => update({ facilities: toggle(profile.facilities, x) })} />
         </div>
       </Section>
@@ -153,7 +153,7 @@ export function BusinessProfile() {
             onChange={(e) => setCustom(e.target.value)}
             maxLength={60}
             placeholder={p.addProductPlaceholder}
-            className="flex-1 min-w-0 bg-stone-950 border border-stone-700 rounded-xl px-3 py-2 text-sm text-white placeholder:text-stone-600 focus:outline-none focus:border-emerald-500"
+            className="flex-1 min-w-0 bg-stone-950 border border-stone-700 rounded-xl px-3 py-2 text-sm text-stone-50 placeholder:text-stone-600 focus:outline-none focus:border-emerald-500"
           />
           <button
             type="submit"
@@ -177,7 +177,7 @@ export function BusinessProfile() {
                 onClick={() => update({ discount: on ? undefined : d })}
                 aria-pressed={on}
                 className={`px-4 py-2.5 rounded-xl border text-sm font-bold transition-all cursor-pointer ${
-                  on ? 'bg-amber-500 border-amber-400 text-stone-950' : 'bg-stone-950 border-stone-800 text-stone-300 hover:border-stone-600'
+                  on ? 'bg-amber-500 border-amber-400 text-black' : 'bg-stone-950 border-stone-800 text-stone-300 hover:border-stone-600'
                 }`}
               >
                 {d === 0 ? p.noDiscount : `${d}%`}
@@ -215,7 +215,7 @@ export function BusinessProfile() {
 
       {/* E. Digital status grid (Partners Assessment sheet) */}
       <Section letter="E" title={p.secE} desc={p.secEDesc} done={Object.keys(profile.digital).length > 0}>
-        <div className="hidden sm:grid grid-cols-[1fr_repeat(3,8.5rem)] gap-2 text-[11px] uppercase tracking-wider text-stone-500 font-bold px-1">
+        <div className="hidden sm:grid grid-cols-[1fr_repeat(3,8.5rem)] gap-2 text-xs text-stone-500 font-bold px-1">
           <span />
           <span className="text-center">{p.colManaged}</span>
           <span className="text-center">{p.colOnOff}</span>
@@ -245,7 +245,7 @@ export function BusinessProfile() {
                       value={profile.otherPlatform ?? ''}
                       onChange={(e) => update({ otherPlatform: e.target.value.slice(0, 60) })}
                       placeholder={p.otherPlaceholder}
-                      className="flex-1 min-w-0 bg-stone-900 border border-stone-700 rounded-lg px-2 py-1 text-xs text-white placeholder:text-stone-600 focus:outline-none focus:border-emerald-500"
+                      className="flex-1 min-w-0 bg-stone-900 border border-stone-700 rounded-lg px-2 py-1 text-xs text-stone-50 placeholder:text-stone-600 focus:outline-none focus:border-emerald-500"
                     />
                   )}
                 </div>
@@ -305,7 +305,7 @@ function Section({
           {done ? <Check className="w-4 h-4" /> : letter}
         </span>
         <div>
-          <h3 className="font-bold text-white">{title}</h3>
+          <h3 className="font-bold text-stone-50">{title}</h3>
           <p className="text-xs text-stone-400 mt-0.5">{desc}</p>
         </div>
       </div>
