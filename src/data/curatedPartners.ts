@@ -1,10 +1,15 @@
-export type PartnerCategory = 'Destination' | 'Accommodation' | 'Culinary';
+import type { BaliRegionId } from '@/data/regions';
+
+export type PartnerCategory = 'Destination' | 'Accommodation' | 'Culinary' | 'Activity';
+
+/** What a traveler ticks in the trip wizard (step 2). */
+export type TravelCategory = 'nature' | 'activities' | 'accommodation' | 'culinary';
 
 export interface CuratedPartner {
   id: string;
   name: string;
   category: PartnerCategory;
-  group: 'Group A';
+  group: 'Group A' | 'Group B';
   location: string;
   priceTier: '$' | '$$' | '$$$' | '$$$$';
   familyTags: string[];
@@ -16,12 +21,27 @@ export interface CuratedPartner {
   shortHighlight: string;
   badgeTitle: string;
   isNewlyPublished?: boolean;
+  /** where in Bali (used for search, the trip map and travel-time estimates) */
+  regionId?: BaliRegionId;
+  /** well-known area inside the region, e.g. "Ubud" */
+  area?: string;
+  coords?: { lat: number; lng: number };
+  /** experience types this partner offers, matched against the traveler's picks */
+  travelCategories?: TravelCategory[];
+  /** reached by boat (e.g. Nusa Penida) — adds crossing time in the planner */
+  requiresBoat?: boolean;
+  /** illustrative listing added for the demo, not a signed-up partner */
+  isSample?: boolean;
 }
 
 export const CURATED_BALI_PARTNERS: CuratedPartner[] = [
   // ================= DESTINATION (Group A) =================
   {
     id: 'dest-jatiluwih-subak',
+    regionId: 'tabanan',
+    area: 'Jatiluwih',
+    coords: { lat: -8.37, lng: 115.131 },
+    travelCategories: ['nature'],
     name: 'Jatiluwih Subak Heritage Eco-Center',
     category: 'Destination',
     group: 'Group A',
@@ -43,6 +63,10 @@ export const CURATED_BALI_PARTNERS: CuratedPartner[] = [
   },
   {
     id: 'dest-taro-firefly-bamboo',
+    regionId: 'gianyar',
+    area: 'Tegallalang',
+    coords: { lat: -8.387, lng: 115.276 },
+    travelCategories: ['nature'],
     name: 'Taro Ancient Firefly Sanctuary & Bamboo Forest',
     category: 'Destination',
     group: 'Group A',
@@ -64,6 +88,10 @@ export const CURATED_BALI_PARTNERS: CuratedPartner[] = [
   },
   {
     id: 'dest-pemuteran-biorock',
+    regionId: 'buleleng',
+    area: 'Pemuteran',
+    coords: { lat: -8.137, lng: 114.659 },
+    travelCategories: ['nature', 'activities'],
     name: 'Pemuteran Biorock Marine Coral Conservation',
     category: 'Destination',
     group: 'Group A',
@@ -87,6 +115,10 @@ export const CURATED_BALI_PARTNERS: CuratedPartner[] = [
   // ================= ACCOMMODATION (Group A) =================
   {
     id: 'accom-sidemen-bamboo-sanctuary',
+    regionId: 'karangasem',
+    area: 'Sidemen',
+    coords: { lat: -8.476, lng: 115.433 },
+    travelCategories: ['accommodation'],
     name: 'Sidemen Valley Bamboo Sanctuary & Organic Farm',
     category: 'Accommodation',
     group: 'Group A',
@@ -108,6 +140,10 @@ export const CURATED_BALI_PARTNERS: CuratedPartner[] = [
   },
   {
     id: 'accom-munduk-mountain-lodge',
+    regionId: 'buleleng',
+    area: 'Munduk',
+    coords: { lat: -8.266, lng: 115.072 },
+    travelCategories: ['accommodation', 'nature'],
     name: 'Munduk Highlands Coffee & Clove Heritage Lodge',
     category: 'Accommodation',
     group: 'Group A',
@@ -129,6 +165,10 @@ export const CURATED_BALI_PARTNERS: CuratedPartner[] = [
   },
   {
     id: 'accom-batukaru-permaculture-retreat',
+    regionId: 'tabanan',
+    area: 'Batukaru',
+    coords: { lat: -8.37, lng: 115.095 },
+    travelCategories: ['accommodation', 'nature'],
     name: 'Batu Karu Sacred Forest Permaculture Camp',
     category: 'Accommodation',
     group: 'Group A',
@@ -152,6 +192,10 @@ export const CURATED_BALI_PARTNERS: CuratedPartner[] = [
   // ================= CULINARY (Group A) =================
   {
     id: 'culinary-nyuh-kuning-jamu-atelier',
+    regionId: 'gianyar',
+    area: 'Ubud',
+    coords: { lat: -8.522, lng: 115.263 },
+    travelCategories: ['culinary'],
     name: 'Dapur Parahyangan & Traditional Jamu Atelier',
     category: 'Culinary',
     group: 'Group A',
@@ -173,6 +217,10 @@ export const CURATED_BALI_PARTNERS: CuratedPartner[] = [
   },
   {
     id: 'culinary-amed-fishermens-cooperative',
+    regionId: 'karangasem',
+    area: 'Amed',
+    coords: { lat: -8.342, lng: 115.664 },
+    travelCategories: ['culinary'],
     name: "Warung Segara Amed Fishermen's Cooperative Table",
     category: 'Culinary',
     group: 'Group A',
@@ -194,6 +242,10 @@ export const CURATED_BALI_PARTNERS: CuratedPartner[] = [
   },
   {
     id: 'culinary-dukuh-campuhan-kitchen',
+    regionId: 'karangasem',
+    area: 'Sidemen',
+    coords: { lat: -8.466, lng: 115.425 },
+    travelCategories: ['culinary'],
     name: 'Dukuh Campuhan Heritage Rice & Fire Kitchen',
     category: 'Culinary',
     group: 'Group A',
@@ -212,6 +264,217 @@ export const CURATED_BALI_PARTNERS: CuratedPartner[] = [
     heroImage: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1000&q=80',
     shortHighlight: 'Wood-fired earthen hearth cooking celebrating ancestral Balinese heirloom grains',
     badgeTitle: 'Dewi Sri Rice Keeper'
+  },
+
+  // ================= SAMPLE LISTINGS (demo coverage for every region + activities) =================
+  {
+    id: 'act-ayung-river-tubing',
+    regionId: 'gianyar',
+    area: 'Ubud',
+    coords: { lat: -8.47, lng: 115.243 },
+    travelCategories: ['activities', 'nature'],
+    isSample: true,
+    name: 'Ayung River Family Tubing',
+    category: 'Activity',
+    group: 'Group B',
+    location: 'Ubud, Gianyar (Bali)',
+    priceTier: '$$',
+    familyTags: ['Kids 8+', 'River Fun', 'Life Jackets Provided', 'Half Day'],
+    verifiedFacts: [
+      'Gentle-section river tubing on the Ayung River with local guides.',
+      'Helmets and life jackets provided for every rider.',
+      'Run by a youth group from a village in the Ayung valley.'
+    ],
+    description: 'Float down the gentle stretch of the Ayung River between jungle walls and rice terraces, with village guides beside every family raft.',
+    defaultMission: 'Spot a kingfisher and count the stone carvings on the riverbank before the finish point.',
+    // Demo listing: deliberately invalid number so no real person is messaged
+    whatsappInquiryNumber: '+620000000001',
+    heroImage: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=1000&q=80',
+    shortHighlight: 'Gentle family river tubing through the Ayung valley',
+    badgeTitle: 'River Rider'
+  },
+  {
+    id: 'nature-batur-sunrise-trek',
+    regionId: 'bangli',
+    area: 'Kintamani',
+    coords: { lat: -8.242, lng: 115.375 },
+    travelCategories: ['nature', 'activities'],
+    isSample: true,
+    name: 'Batur Sunrise Trek Guides',
+    category: 'Destination',
+    group: 'Group A',
+    location: 'Kintamani, Bangli (Bali)',
+    priceTier: '$$',
+    familyTags: ['Teens & Adults', 'Sunrise', 'Volcano Trek', 'Early Start'],
+    verifiedFacts: [
+      'Guided pre-dawn hike to watch sunrise from Mount Batur.',
+      'Led by members of the local trekking guide association.',
+      'Breakfast at the summit with views of Lake Batur.'
+    ],
+    description: 'Start in the dark, reach the crater rim as the sky turns gold, and watch the sun rise over Lake Batur and Mount Agung.',
+    defaultMission: 'Find three different kinds of volcanic rock on the trail and photograph the sunrise over Mount Agung.',
+    // Demo listing: deliberately invalid number so no real person is messaged
+    whatsappInquiryNumber: '+620000000002',
+    heroImage: 'https://images.unsplash.com/photo-1537996194471-e657df975ab4?auto=format&fit=crop&w=1000&q=80',
+    shortHighlight: 'Sunrise volcano hike above Lake Batur',
+    badgeTitle: 'Sunrise Summiter'
+  },
+  {
+    id: 'act-nusa-penida-snorkel',
+    regionId: 'klungkung',
+    area: 'Nusa Penida',
+    coords: { lat: -8.73, lng: 115.54 },
+    travelCategories: ['activities', 'nature'],
+    requiresBoat: true,
+    isSample: true,
+    name: 'Nusa Penida Snorkel Trip',
+    category: 'Activity',
+    group: 'Group B',
+    location: 'Nusa Penida, Klungkung (Bali)',
+    priceTier: '$$$',
+    familyTags: ['Kids 10+', 'Snorkeling', 'Boat Trip', 'Full Day'],
+    verifiedFacts: [
+      'Boat trip to calm snorkeling bays around Nusa Penida.',
+      'Snorkel gear and life vests included.',
+      'Crew from a Nusa Penida fishing family.'
+    ],
+    description: 'Cross to Nusa Penida by boat and snorkel calm, clear bays with a local crew who know the island’s reefs.',
+    defaultMission: 'Spot five colours of reef fish and draw your favourite in your adventure passport.',
+    // Demo listing: deliberately invalid number so no real person is messaged
+    whatsappInquiryNumber: '+620000000003',
+    heroImage: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=1000&q=80',
+    shortHighlight: 'Island snorkeling day across the strait',
+    badgeTitle: 'Reef Explorer'
+  },
+  {
+    id: 'culinary-jimbaran-seafood',
+    regionId: 'badung',
+    area: 'Jimbaran',
+    coords: { lat: -8.784, lng: 115.16 },
+    travelCategories: ['culinary', 'nature'],
+    isSample: true,
+    name: 'Jimbaran Bay Sunset Seafood Warung',
+    category: 'Culinary',
+    group: 'Group A',
+    location: 'Jimbaran, Badung (Bali)',
+    priceTier: '$$',
+    familyTags: ['All Ages', 'Sunset Dinner', 'Beachfront', 'Fresh Catch'],
+    verifiedFacts: [
+      'Family-run beach warung grilling the daily catch over coconut husks.',
+      'Tables on the sand facing the Jimbaran sunset.',
+      'Fish bought each morning at the Kedonganan market next door.'
+    ],
+    description: 'Toes in the sand, a grill smoking with coconut husks, and the sun dropping into Jimbaran Bay.',
+    defaultMission: 'Learn the Balinese names of three fish at the grill and watch the sun touch the sea.',
+    // Demo listing: deliberately invalid number so no real person is messaged
+    whatsappInquiryNumber: '+620000000004',
+    heroImage: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1000&q=80',
+    shortHighlight: 'Sunset seafood dinner on Jimbaran beach',
+    badgeTitle: 'Sunset Feaster'
+  },
+  {
+    id: 'accom-canggu-family-homestay',
+    regionId: 'badung',
+    area: 'Canggu',
+    coords: { lat: -8.64, lng: 115.14 },
+    travelCategories: ['accommodation'],
+    isSample: true,
+    name: 'Canggu Rice-Field Family Homestay',
+    category: 'Accommodation',
+    group: 'Group A',
+    location: 'Canggu, Badung (Bali)',
+    priceTier: '$$',
+    familyTags: ['Family Rooms', 'Rice Field Views', 'Breakfast Included', 'Near Beach'],
+    verifiedFacts: [
+      'Family-run homestay surrounded by working rice fields.',
+      'Homemade Balinese breakfast every morning.',
+      'Short ride to the beach and Tanah Lot.'
+    ],
+    description: 'Wake up to rice-field views and a homemade Balinese breakfast with a family who has farmed here for generations.',
+    defaultMission: 'Help the host family make a canang sari offering and learn what each colour means.',
+    // Demo listing: deliberately invalid number so no real person is messaged
+    whatsappInquiryNumber: '+620000000005',
+    heroImage: 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?auto=format&fit=crop&w=1000&q=80',
+    shortHighlight: 'Rice-field homestay close to the beach',
+    badgeTitle: 'Homestay Friend'
+  },
+  {
+    id: 'dest-tanah-lot-sunset',
+    regionId: 'tabanan',
+    area: 'Tanah Lot',
+    coords: { lat: -8.621, lng: 115.087 },
+    travelCategories: ['nature'],
+    isSample: true,
+    name: 'Tanah Lot Sunset Walk',
+    category: 'Destination',
+    group: 'Group A',
+    location: 'Tanah Lot, Tabanan (Bali)',
+    priceTier: '$',
+    familyTags: ['All Ages', 'Sunset', 'Sea Temple', 'Easy Walk'],
+    verifiedFacts: [
+      'Guided sunset walk around the Tanah Lot sea temple area.',
+      'Guides from the surrounding Beraban village.',
+      'Easy coastal path suitable for children.'
+    ],
+    description: 'Walk the cliffs around the famous sea temple with a village guide and stay for one of Bali’s best sunsets.',
+    defaultMission: 'Find the holy spring at the base of the temple and count the waves between sunset photos.',
+    // Demo listing: deliberately invalid number so no real person is messaged
+    whatsappInquiryNumber: '+620000000006',
+    heroImage: 'https://images.unsplash.com/photo-1537996194471-e657df975ab4?auto=format&fit=crop&w=1000&q=80',
+    shortHighlight: 'Sunset walk at the Tanah Lot sea temple',
+    badgeTitle: 'Sea Temple Watcher'
+  },
+  {
+    id: 'act-sanur-cycling',
+    regionId: 'denpasar',
+    area: 'Sanur',
+    coords: { lat: -8.68, lng: 115.263 },
+    travelCategories: ['activities'],
+    isSample: true,
+    name: 'Sanur Beachside Family Cycling',
+    category: 'Activity',
+    group: 'Group B',
+    location: 'Sanur, Denpasar (Bali)',
+    priceTier: '$',
+    familyTags: ['All Ages', 'Cycling', 'Flat Path', 'Morning'],
+    verifiedFacts: [
+      'Bike tour along the flat Sanur beachfront path.',
+      'Child seats and kids’ bikes available.',
+      'Stops at traditional fishing jukung boats.'
+    ],
+    description: 'Ride the easy, flat beachfront path of Sanur in the cool morning, past colourful jukung fishing boats.',
+    defaultMission: 'Count the painted jukung boats and find the one with the biggest eyes on its bow.',
+    // Demo listing: deliberately invalid number so no real person is messaged
+    whatsappInquiryNumber: '+620000000007',
+    heroImage: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=1000&q=80',
+    shortHighlight: 'Easy morning bike ride on the Sanur beach path',
+    badgeTitle: 'Beach Rider'
+  },
+  {
+    id: 'act-medewi-surf',
+    regionId: 'jembrana',
+    area: 'Medewi',
+    coords: { lat: -8.418, lng: 114.812 },
+    travelCategories: ['activities', 'nature'],
+    isSample: true,
+    name: 'Medewi Beginner Surf School',
+    category: 'Activity',
+    group: 'Group B',
+    location: 'Medewi, Jembrana (Bali)',
+    priceTier: '$$',
+    familyTags: ['Kids 10+', 'Surfing', 'Beginner Friendly', 'Quiet Beach'],
+    verifiedFacts: [
+      'Beginner surf lessons on the long, gentle Medewi wave.',
+      'Boards and rash guards included.',
+      'Instructors from the local Medewi surf community.'
+    ],
+    description: 'Learn to surf on the long, gentle wave of Medewi, a quiet beach far from the crowds of the south.',
+    defaultMission: 'Stand up on your board once and give your instructor a shaka sign from the wave.',
+    // Demo listing: deliberately invalid number so no real person is messaged
+    whatsappInquiryNumber: '+620000000008',
+    heroImage: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=1000&q=80',
+    shortHighlight: 'Beginner surf lessons on a quiet west-coast beach',
+    badgeTitle: 'Wave Rider'
   }
 ];
 

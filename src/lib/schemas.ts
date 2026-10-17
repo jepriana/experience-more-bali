@@ -65,3 +65,31 @@ export function safeJson(text: string | undefined): unknown {
         return undefined;
     }
 }
+// ───────── Traveler: "Arrange my days" (trip planner) ─────────
+
+/**
+ * Built per request: stopIds may only be the traveler's basket items, and there can't be
+ * more days than they chose. The server still repairs missing/duplicate stops afterwards.
+ */
+export function makeTripPlanSchema(stopIds: string[], days: number) {
+  const StopId = z.enum(stopIds as [string, ...string[]]);
+  return z.object({
+    tripTitle: z.string().describe('Inspiring trip title, max 8 words'),
+    travelerType: z
+      .string()
+      .describe('Short label for this traveler inferred from their choices, e.g. "Nature-loving family explorer". Max 6 words'),
+    days: z
+      .array(
+        z.object({
+          title: z.string().describe('Theme of the day, max 6 words'),
+          stopIds: z.array(StopId).describe('Stops for this day, in visiting order'),
+          why: z.string().describe('Max 25 words: why these stops belong together today')
+        })
+      )
+      .min(1)
+      .max(days),
+    tips: z.array(z.string().describe('Practical tip, max 20 words')).max(3)
+  });
+}
+
+export type TripPlan = z.infer<ReturnType<typeof makeTripPlanSchema>>;
