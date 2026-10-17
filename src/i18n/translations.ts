@@ -181,6 +181,71 @@ export interface Translations {
     badgeModalVerified: string;
     badgeModalDate: string;
   };
+  landing: {
+    heroTag: string;
+    heroTitle: string;
+    heroSlogan: string;
+    heroDesc: string;
+    travelerDoorTitle: string;
+    travelerDoorDesc: string;
+    travelerDoorCta: string;
+    partnerDoorTitle: string;
+    partnerDoorDesc: string;
+    partnerDoorCta: string;
+    continueAs: string;
+    memoryLink: string;
+    sampleTravelerName: string;
+    samplePartnerName: string;
+  };
+  signup: {
+    travelerTitle: string;
+    travelerSubtitle: string;
+    labelName: string;
+    placeholderName: string;
+    labelContact: string;
+    placeholderContact: string;
+    labelHome: string;
+    homeInternational: string;
+    labelCity: string;
+    labelCountry: string;
+    placeholderCity: string;
+    placeholderCountry: string;
+    btnCreateTraveler: string;
+    partnerTitle: string;
+    partnerSubtitle: string;
+    labelPic: string;
+    placeholderPic: string;
+    labelBusiness: string;
+    placeholderBusiness: string;
+    labelBaliRegion: string;
+    chooseRegion: string;
+    labelArea: string;
+    areaNone: string;
+    btnCreatePartner: string;
+    privacyNote: string;
+    previewLabel: string;
+    errName: string;
+    errContact: string;
+    errHome: string;
+    errPic: string;
+    errBusiness: string;
+    errRegion: string;
+  };
+  sticker: {
+    readyTraveler: string;
+    readyPartner: string;
+    readyDesc: string;
+    download: string;
+    continueTraveler: string;
+    continuePartner: string;
+    view: string;
+    switchAccount: string;
+    welcome: string;
+    poweredBy: string;
+    strategicPartnerOf: string;
+    close: string;
+    memoryObjectLabel: string;
+  };
   stream: {
     liveAi: string;
     offlineDemo: string;
@@ -416,6 +481,71 @@ export const translations: Record<Language, Translations> = {
       badgeModalVerified: 'Verified Achievement Badge',
       badgeModalDate: 'Date Earned:'
     },
+    landing: {
+      heroTag: 'KOSSI Adventure · Indonesian Tourism Initiative',
+      heroTitle: 'Experience More Bali 2027',
+      heroSlogan: 'Don\'t just visit. Create more memories.',
+      heroDesc: 'One ecosystem, two doors: travelers plan a Bali adventure in a few taps, and local partners grow with AI.',
+      travelerDoorTitle: 'I\'m traveling to Bali',
+      travelerDoorDesc: 'Pick the regions and experiences you like — we arrange the days. You get your own family sticker.',
+      travelerDoorCta: 'Start my adventure',
+      partnerDoorTitle: 'I\'m a local partner',
+      partnerDoorDesc: 'Destination, stay, culinary or activity in Bali? Join to reach the right travelers, get AI support and your partner sticker.',
+      partnerDoorCta: 'Join as a partner',
+      continueAs: 'Continue as {name}',
+      memoryLink: 'See memory objects: QR T-shirts & patches',
+      sampleTravelerName: 'The Explorer Family',
+      samplePartnerName: 'Desa Wisata Penarungan'
+    },
+    signup: {
+      travelerTitle: 'Welcome! Who is traveling?',
+      travelerSubtitle: 'Three quick answers and your family sticker is ready.',
+      labelName: 'Name, family or group',
+      placeholderName: 'e.g. The Roy Family',
+      labelContact: 'Email or phone (WhatsApp)',
+      placeholderContact: 'you@email.com or +62…',
+      labelHome: 'Where are you from?',
+      homeInternational: 'Outside Indonesia',
+      labelCity: 'City (optional)',
+      labelCountry: 'Country',
+      placeholderCity: 'e.g. Surabaya',
+      placeholderCountry: 'e.g. Australia',
+      btnCreateTraveler: 'Create my sticker',
+      partnerTitle: 'Join KOSSI Adventure as a partner',
+      partnerSubtitle: 'Four quick answers and your partner sticker is ready.',
+      labelPic: 'Your name (person in charge)',
+      placeholderPic: 'e.g. Made Wirawan',
+      labelBusiness: 'Business name',
+      placeholderBusiness: 'e.g. Desa Wisata Penarungan',
+      labelBaliRegion: 'Where in Bali?',
+      chooseRegion: 'Choose your region…',
+      labelArea: 'Area (optional)',
+      areaNone: 'Whole region',
+      btnCreatePartner: 'Create partner sticker',
+      privacyNote: 'We use your choices only to personalise your experience and improve local tourism. For now this is saved on this device.',
+      previewLabel: 'Live preview',
+      errName: 'Please enter your name, family or group.',
+      errContact: 'Please enter an email or phone number.',
+      errHome: 'Please choose where you are from.',
+      errPic: 'Please enter your name.',
+      errBusiness: 'Please enter your business name.',
+      errRegion: 'Please choose your region in Bali.'
+    },
+    sticker: {
+      readyTraveler: 'Your family sticker is ready!',
+      readyPartner: 'Your partner sticker is ready!',
+      readyDesc: 'This is your memory object. After you plan your trip, you can print it on T-shirts, hats and bags.',
+      download: 'Download sticker',
+      continueTraveler: 'Continue to plan my trip',
+      continuePartner: 'Continue to partner studio',
+      view: 'View sticker',
+      switchAccount: 'Switch account',
+      welcome: 'Welcome',
+      poweredBy: 'Powered by',
+      strategicPartnerOf: 'Strategic Partner of',
+      close: 'Close',
+      memoryObjectLabel: 'Your memory sticker'
+    },
     stream: {
       liveAi: 'Live AI',
       offlineDemo: 'Offline demo',
@@ -648,6 +778,71 @@ export const translations: Record<Language, Translations> = {
       linkCopied: 'Tautan Tersalin!',
       badgeModalVerified: 'Lencana Pencapaian Terverifikasi',
       badgeModalDate: 'Tanggal Diperoleh:'
+    },
+    landing: {
+      heroTag: 'KOSSI Adventure · Indonesian Tourism Initiative',
+      heroTitle: 'Experience More Bali 2027',
+      heroSlogan: 'Jangan hanya berkunjung. Ciptakan lebih banyak kenangan.',
+      heroDesc: 'Satu ekosistem, dua pintu: wisatawan merencanakan petualangan di Bali dengan beberapa ketukan, dan mitra lokal tumbuh bersama AI.',
+      travelerDoorTitle: 'Saya akan berlibur ke Bali',
+      travelerDoorDesc: 'Pilih wilayah dan pengalaman yang Anda suka — kami yang mengatur harinya. Anda juga mendapat stiker keluarga sendiri.',
+      travelerDoorCta: 'Mulai petualangan saya',
+      partnerDoorTitle: 'Saya mitra lokal',
+      partnerDoorDesc: 'Destinasi, penginapan, kuliner, atau aktivitas di Bali? Bergabunglah untuk menjangkau wisatawan yang tepat, dapatkan dukungan AI dan stiker mitra Anda.',
+      partnerDoorCta: 'Bergabung sebagai mitra',
+      continueAs: 'Lanjut sebagai {name}',
+      memoryLink: 'Lihat objek kenangan: kaos & patch QR',
+      sampleTravelerName: 'Keluarga Penjelajah',
+      samplePartnerName: 'Desa Wisata Penarungan'
+    },
+    signup: {
+      travelerTitle: 'Selamat datang! Siapa yang berlibur?',
+      travelerSubtitle: 'Tiga jawaban singkat dan stiker keluarga Anda siap.',
+      labelName: 'Nama, keluarga, atau grup',
+      placeholderName: 'mis. Keluarga Wijaya',
+      labelContact: 'Email atau telepon (WhatsApp)',
+      placeholderContact: 'anda@email.com atau +62…',
+      labelHome: 'Anda berasal dari mana?',
+      homeInternational: 'Luar Indonesia',
+      labelCity: 'Kota (opsional)',
+      labelCountry: 'Negara',
+      placeholderCity: 'mis. Surabaya',
+      placeholderCountry: 'mis. Australia',
+      btnCreateTraveler: 'Buat stiker saya',
+      partnerTitle: 'Bergabung dengan KOSSI Adventure sebagai mitra',
+      partnerSubtitle: 'Empat jawaban singkat dan stiker mitra Anda siap.',
+      labelPic: 'Nama Anda (penanggung jawab)',
+      placeholderPic: 'mis. Made Wirawan',
+      labelBusiness: 'Nama usaha',
+      placeholderBusiness: 'mis. Desa Wisata Penarungan',
+      labelBaliRegion: 'Di mana di Bali?',
+      chooseRegion: 'Pilih wilayah Anda…',
+      labelArea: 'Area (opsional)',
+      areaNone: 'Seluruh wilayah',
+      btnCreatePartner: 'Buat stiker mitra',
+      privacyNote: 'Kami menggunakan pilihan Anda hanya untuk menyesuaikan pengalaman dan meningkatkan pariwisata lokal. Untuk saat ini disimpan di perangkat ini.',
+      previewLabel: 'Pratinjau langsung',
+      errName: 'Silakan masukkan nama, keluarga, atau grup Anda.',
+      errContact: 'Silakan masukkan email atau nomor telepon.',
+      errHome: 'Silakan pilih asal Anda.',
+      errPic: 'Silakan masukkan nama Anda.',
+      errBusiness: 'Silakan masukkan nama usaha Anda.',
+      errRegion: 'Silakan pilih wilayah Anda di Bali.'
+    },
+    sticker: {
+      readyTraveler: 'Stiker keluarga Anda siap!',
+      readyPartner: 'Stiker mitra Anda siap!',
+      readyDesc: 'Ini objek kenangan Anda. Setelah merencanakan perjalanan, Anda bisa mencetaknya di kaos, topi, dan tas.',
+      download: 'Unduh stiker',
+      continueTraveler: 'Lanjut merencanakan perjalanan',
+      continuePartner: 'Lanjut ke studio mitra',
+      view: 'Lihat stiker',
+      switchAccount: 'Ganti akun',
+      welcome: 'Selamat datang',
+      poweredBy: 'Didukung oleh',
+      strategicPartnerOf: 'Mitra Strategis',
+      close: 'Tutup',
+      memoryObjectLabel: 'Stiker kenangan Anda'
     },
     stream: {
       liveAi: 'AI Langsung',
