@@ -8,8 +8,7 @@ import {
   Sparkles,
   CheckCircle2,
   AlertCircle,
-  ShieldCheck,
-  Languages
+  ShieldCheck
 } from 'lucide-react';
 import { usePartners } from '@/context/PartnersContext';
 import { useLanguage } from '@/context/LanguageContext';
@@ -23,7 +22,7 @@ interface NavbarProps {
 
 export function Navbar({ activeTab, onTabChange }: NavbarProps) {
   const { partners, totalCustomCount } = usePartners();
-  const { language, setLanguage, toggleLanguage, t } = useLanguage();
+  const { language, setLanguage, t } = useLanguage();
   const [geminiStatus, setGeminiStatus] = useState<{
     configured: boolean;
     model: string;

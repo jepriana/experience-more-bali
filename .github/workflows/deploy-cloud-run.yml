@@ -1,0 +1,122 @@
+name: Deploy to Google Cloud Run
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+# Required permissions for Workload Identity Federation & checking out code
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID || vars.GCP_PROJECT_ID }}
+  GCP_REGION: ${{ vars.GCP_REGION || 'asia-southeast2' }} # Jakarta (Indonesia) - lowest latency to Bali
+  SERVICE_NAME: experience-more-bali
+  GAR_REPOSITORY: ${{ vars.GAR_REPOSITORY || 'experience-more-bali-repo' }}
+
+jobs:
+  deploy:
+    name: Build & Deploy to Cloud Run
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      # ------------------------------------------------------------------------
+      # Step 1: Authenticate to Google Cloud
+      # Supports Workload Identity Federation (recommended) or Service Account Key
+      # ------------------------------------------------------------------------
+      - name: Authenticate to Google Cloud (Workload Identity)
+        if: ${{ secrets.GCP_WIF_PROVIDER != '' }}
+        id: auth-wif
+        uses: google-github-actions/auth@v2
+        with:
+          token_format: 'access_token'
+          workload_identity_provider: ${{ secrets.GCP_WIF_PROVIDER }}
+          service_account: ${{ secrets.GCP_SA_EMAIL }}
+
+      - name: Authenticate to Google Cloud (Service Account Key)
+        if: ${{ secrets.GCP_WIF_PROVIDER == '' }}
+        id: auth-key
+        uses: google-github-actions/auth@v2
+        with:
+          token_format: 'access_token'
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      # ------------------------------------------------------------------------
+      # Step 2: Set up Cloud SDK
+      # ------------------------------------------------------------------------
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      # ------------------------------------------------------------------------
+      # Step 3: Configure Docker Authentication for Google Artifact Registry
+      # ------------------------------------------------------------------------
+      - name: Configure Docker for Artifact Registry
+        run: |
+          gcloud auth configure-docker ${{ env.GCP_REGION }}-docker.pkg.dev --quiet
+
+      # ------------------------------------------------------------------------
+      # Step 4: Ensure Artifact Registry Repository Exists
+      # ------------------------------------------------------------------------
+      - name: Ensure Artifact Registry Exists
+        run: |
+          if ! gcloud artifacts repositories describe ${{ env.GAR_REPOSITORY }} \
+            --location=${{ env.GCP_REGION }} \
+            --project=${{ env.GCP_PROJECT_ID }} >/dev/null 2>&1; then
+            echo "Creating Artifact Registry repository: ${{ env.GAR_REPOSITORY }}..."
+            gcloud artifacts repositories create ${{ env.GAR_REPOSITORY }} \
+              --repository-format=docker \
+              --location=${{ env.GCP_REGION }} \
+              --description="Docker repository for Experience More Bali 2027" \
+              --project=${{ env.GCP_PROJECT_ID }}
+          else
+            echo "Artifact Registry repository already exists."
+          fi
+
+      # ------------------------------------------------------------------------
+      # Step 5: Build and Push Docker Container Image
+      # ------------------------------------------------------------------------
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.GAR_REPOSITORY }}/${{ env.SERVICE_NAME }}:${{ github.sha }}
+            ${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.GAR_REPOSITORY }}/${{ env.SERVICE_NAME }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # ------------------------------------------------------------------------
+      # Step 6: Deploy to Google Cloud Run
+      # ------------------------------------------------------------------------
+      - name: Deploy to Cloud Run
+        id: deploy
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: ${{ env.SERVICE_NAME }}
+          region: ${{ env.GCP_REGION }}
+          image: ${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.GAR_REPOSITORY }}/${{ env.SERVICE_NAME }}:${{ github.sha }}
+          flags: '--allow-unauthenticated'
+          env_vars: |
+            GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}
+            NODE_ENV=production
+
+      # ------------------------------------------------------------------------
+      # Step 7: Output Deployed URL to Job Summary
+      # ------------------------------------------------------------------------
+      - name: Deployment Summary
+        run: |
+          echo "### 🚀 Experience More Bali 2027 Deployed Successfully!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Cloud Run Service URL:** ${{ steps.deploy.outputs.url }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Region:** \`${{ env.GCP_REGION }}\` (Jakarta)" >> $GITHUB_STEP_SUMMARY
+          echo "**Image Tag:** \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY

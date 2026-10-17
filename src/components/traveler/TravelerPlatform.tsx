@@ -2,8 +2,6 @@
 
 import React, { useRef } from 'react';
 import {
-  CURATED_BALI_PARTNERS,
-  CuratedPartner,
   PartnerCategory,
   createWhatsAppInquiryUrl
 } from '@/data/curatedPartners';
@@ -18,13 +16,10 @@ import {
   Compass,
   Sparkles,
   MapPin,
-  Calendar,
-  CheckCircle,
   MessageCircle,
   Award,
   ChevronRight,
   Search,
-  Filter,
   ShieldCheck,
   HeartHandshake,
   Check,
@@ -585,7 +580,7 @@ export function TravelerPlatform({ onSelectPartnerForPartnerView }: TravelerPlat
               ).map((cat) => (
                 <button
                   key={cat.id}
-                  onClick={() => setSelectedCategory(cat.id as any)}
+                  onClick={() => setSelectedCategory(cat.id as PartnerCategory | 'All')}
                   className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                     selectedCategory === cat.id
                       ? 'bg-emerald-600 text-white shadow-sm'

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getGemini, DEFAULT_GEMINI_MODEL, isGeminiConfigured } from '@/lib/gemini';
-import { getPartnerById, CURATED_BALI_PARTNERS } from '@/data/curatedPartners';
+import { getPartnerById } from '@/data/curatedPartners';
 
 export async function POST(request: Request) {
   try {
