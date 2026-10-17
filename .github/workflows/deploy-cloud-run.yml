@@ -16,6 +16,7 @@ env:
   GCP_REGION: ${{ vars.GCP_REGION || 'asia-southeast2' }} # Jakarta (Indonesia) - lowest latency to Bali
   SERVICE_NAME: experience-more-bali
   GAR_REPOSITORY: ${{ vars.GAR_REPOSITORY || 'experience-more-bali-repo' }}
+  GCP_WIF_PROVIDER: ${{ secrets.GCP_WIF_PROVIDER || vars.GCP_WIF_PROVIDER }}
 
 jobs:
   deploy:
@@ -31,16 +32,16 @@ jobs:
       # Supports Workload Identity Federation (recommended) or Service Account Key
       # ------------------------------------------------------------------------
       - name: Authenticate to Google Cloud (Workload Identity)
-        if: ${{ secrets.GCP_WIF_PROVIDER != '' }}
+        if: env.GCP_WIF_PROVIDER != ''
         id: auth-wif
         uses: google-github-actions/auth@v2
         with:
           token_format: 'access_token'
-          workload_identity_provider: ${{ secrets.GCP_WIF_PROVIDER }}
-          service_account: ${{ secrets.GCP_SA_EMAIL }}
+          workload_identity_provider: ${{ env.GCP_WIF_PROVIDER }}
+          service_account: ${{ secrets.GCP_SA_EMAIL || vars.GCP_SA_EMAIL }}
 
       - name: Authenticate to Google Cloud (Service Account Key)
-        if: ${{ secrets.GCP_WIF_PROVIDER == '' }}
+        if: env.GCP_WIF_PROVIDER == ''
         id: auth-key
         uses: google-github-actions/auth@v2
         with:
