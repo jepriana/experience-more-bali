@@ -2,8 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
-import { ArrowRight, Compass, QrCode, Store } from 'lucide-react';
+import { QrCode } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { StickerCanvas } from '@/components/onboarding/StickerCanvas';
 import { useAccountSticker } from '@/components/onboarding/AccountSticker';
@@ -16,118 +15,98 @@ export function Landing() {
   const travelerSticker = useAccountSticker('traveler');
   const partnerSticker = useAccountSticker('partner');
 
+  const travelerContent = travelerSticker ?? {
+    kind: 'traveler' as const,
+    title: t.landing.sampleTravelerName,
+    region: 'DKI Jakarta',
+    tagline: t.sticker.poweredBy
+  };
+  const partnerContent = partnerSticker ?? {
+    kind: 'partner' as const,
+    title: t.landing.samplePartnerName,
+    region: 'Badung, Bali',
+    tagline: t.sticker.strategicPartnerOf
+  };
+
   return (
-    <div className="py-10 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-10">
-      {/* Hero */}
-      <div className="relative rounded-3xl bg-gradient-to-r from-emerald-950 via-teal-950 to-stone-900 border border-emerald-800/40 p-8 sm:p-12 shadow-2xl overflow-hidden text-center">
-        <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-[36rem] h-80 rounded-full bg-emerald-500/10 blur-3xl pointer-events-none" />
-        <div className="relative z-10 max-w-3xl mx-auto space-y-5 flex flex-col items-center stream-in">
-          <Image
-            src="/brand/kossi-adventure-logo.jpg"
-            alt="KOSSI Adventure"
-            width={580}
-            height={208}
-            priority
-            unoptimized
-            className="h-20 sm:h-24 w-auto rounded-2xl shadow-2xl shadow-black/40 ring-1 ring-amber-900/60"
-          />
-          <span className="text-xs font-semibold text-emerald-300 tracking-wide">{t.landing.heroTag}</span>
-          <h1 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight">{t.landing.heroTitle}</h1>
-          <p className="text-lg sm:text-xl font-semibold text-amber-300">{t.landing.heroSlogan}</p>
-          <p className="text-stone-300 text-sm sm:text-base leading-relaxed max-w-2xl">{t.landing.heroDesc}</p>
+    <div className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+      {/* Hero: the words on the left, the memory stickers (the product's souvenir) on the right */}
+      <section aria-labelledby="hero-title" className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center py-12 sm:py-20">
+        <div className="lg:col-span-7 space-y-6">
+          <p className="text-sm font-semibold text-emerald-400">{t.landing.heroTag}</p>
+          <h1 id="hero-title" className="text-4xl sm:text-6xl font-extrabold text-stone-50 tracking-tight leading-[1.05]">
+            {t.landing.heroTitle}
+          </h1>
+          <p className="text-xl sm:text-2xl text-stone-300 leading-snug max-w-[32ch]">{t.landing.heroSlogan}</p>
+          <p className="text-base text-stone-500 leading-relaxed max-w-[60ch]">{t.landing.heroDesc}</p>
         </div>
-      </div>
+        <div className="lg:col-span-5 relative h-72 sm:h-80" aria-hidden="true">
+          <div className="absolute left-[8%] top-0 -rotate-6 sticker-pop">
+            <StickerCanvas content={travelerContent} size={230} />
+          </div>
+          <div className="absolute right-[6%] bottom-0 rotate-[5deg] sticker-pop" style={{ animationDelay: '120ms' }}>
+            <StickerCanvas content={partnerContent} size={200} />
+          </div>
+        </div>
+      </section>
 
       {/* Two doors */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <section className="grid grid-cols-1 md:grid-cols-2 border-t border-stone-700">
         <Door
           href="/traveler"
-          icon={<Compass className="w-5 h-5" />}
           title={t.landing.travelerDoorTitle}
           desc={t.landing.travelerDoorDesc}
-          cta={
-            hydrated && travelerSticker
-              ? t.landing.continueAs.replace('{name}', travelerSticker.title)
-              : t.landing.travelerDoorCta
-          }
-          sticker={
-            travelerSticker ?? {
-              kind: 'traveler',
-              title: t.landing.sampleTravelerName,
-              region: 'DKI Jakarta',
-              tagline: t.sticker.poweredBy
-            }
-          }
+          cta={hydrated && travelerSticker ? t.landing.continueAs.replace('{name}', travelerSticker.title) : t.landing.travelerDoorCta}
+          primary
         />
         <Door
           href="/partner"
-          icon={<Store className="w-5 h-5" />}
           title={t.landing.partnerDoorTitle}
           desc={t.landing.partnerDoorDesc}
-          cta={
-            hydrated && partnerSticker
-              ? t.landing.continueAs.replace('{name}', partnerSticker.title)
-              : t.landing.partnerDoorCta
-          }
-          sticker={
-            partnerSticker ?? {
-              kind: 'partner',
-              title: t.landing.samplePartnerName,
-              region: 'Badung, Bali',
-              tagline: t.sticker.strategicPartnerOf
-            }
-          }
+          cta={hydrated && partnerSticker ? t.landing.continueAs.replace('{name}', partnerSticker.title) : t.landing.partnerDoorCta}
+          className="md:border-l border-t md:border-t-0 border-stone-700 md:pl-10"
         />
-      </div>
+      </section>
 
-      <div className="text-center">
-        <Link
-          href="/memory"
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm text-stone-300 hover:text-white bg-stone-900 border border-stone-800 hover:border-stone-600 transition-colors"
-        >
-          <QrCode className="w-4 h-4 text-emerald-400" />
-          <span>{t.landing.memoryLink}</span>
-          <ArrowRight className="w-3.5 h-3.5" />
+      <p className="py-10 border-t border-stone-800 text-sm text-stone-500">
+        <Link href="/memory" className="inline-flex items-center gap-2 font-semibold text-emerald-400 underline underline-offset-4 decoration-emerald-800 hover:decoration-emerald-400">
+          <QrCode className="w-4 h-4" aria-hidden="true" />
+          {t.landing.memoryLink}
         </Link>
-      </div>
+      </p>
     </div>
   );
 }
 
 function Door({
   href,
-  icon,
   title,
   desc,
   cta,
-  sticker
+  primary,
+  className = ''
 }: {
   href: string;
-  icon: React.ReactNode;
   title: string;
   desc: string;
   cta: string;
-  sticker: React.ComponentProps<typeof StickerCanvas>['content'];
+  primary?: boolean;
+  className?: string;
 }) {
   return (
-    <Link
-      href={href}
-      className="group bg-stone-900 border border-stone-800 hover:border-emerald-600/70 rounded-3xl p-6 sm:p-8 shadow-xl flex flex-col sm:flex-row items-center gap-6 transition-all hover:-translate-y-0.5 hover:shadow-emerald-950/40 stream-in"
-    >
-      <div className="shrink-0 group-hover:rotate-[-3deg] group-hover:scale-105 transition-transform duration-300">
-        <StickerCanvas content={sticker} size={170} />
-      </div>
-      <div className="space-y-3 text-center sm:text-left">
-        <div className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-emerald-950 border border-emerald-800 text-emerald-400">
-          {icon}
-        </div>
-        <h2 className="text-xl sm:text-2xl font-extrabold text-white">{title}</h2>
-        <p className="text-sm text-stone-400 leading-relaxed">{desc}</p>
-        <span className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm bg-gradient-to-r from-emerald-500 to-teal-600 group-hover:from-emerald-400 group-hover:to-teal-500 text-white shadow-lg shadow-emerald-950/50 transition-all">
-          {cta}
-          <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
-        </span>
-      </div>
-    </Link>
+    <div className={`py-10 md:pr-10 space-y-4 ${className}`}>
+      <h2 className="text-2xl font-bold text-stone-50">{title}</h2>
+      <p className="text-base text-stone-500 leading-relaxed max-w-[52ch]">{desc}</p>
+      <Link
+        href={href}
+        className={`inline-flex items-center gap-2 px-5 py-3 rounded-lg font-bold text-sm transition-colors ${
+          primary
+            ? 'bg-emerald-600 hover:bg-(--action-hover) text-white'
+            : 'border-2 border-stone-300 text-stone-50 hover:bg-stone-50 hover:text-stone-950'
+        }`}
+      >
+        {cta}
+      </Link>
+    </div>
   );
 }

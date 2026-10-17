@@ -43,3 +43,6 @@ next-env.d.ts
 # archives
 *.zip
 
+
+# partner directory + verification records (server file store)
+/.data/

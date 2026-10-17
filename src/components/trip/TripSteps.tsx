@@ -1,6 +1,8 @@
 'use client';
 
 import React from 'react';
+import { VerificationBadge } from '@/components/verification/VerificationBadge';
+import { usePartners } from '@/context/PartnersContext';
 import {
   ArrowLeft,
   ArrowRight,
@@ -24,9 +26,15 @@ import type { TripState } from '@/components/trip/useTrip';
 
 export function Stepper({ trip }: { trip: TripState }) {
   const { t } = useLanguage();
-  const labels = [t.trip.stepRegions, t.trip.stepCategories, t.trip.stepBasket, t.trip.stepPlan];
+  const labels = [t.trip.stepRegions, t.trip.stepCategories, t.trip.stepBasket, t.trip.stepPlan, t.merch.stepGear];
   // A step is reachable once everything before it has been chosen
-  const reachable = [true, trip.regions.length > 0, trip.categories.length > 0 && trip.regions.length > 0, trip.basket.length > 0];
+  const reachable = [
+    true,
+    trip.regions.length > 0,
+    trip.categories.length > 0 && trip.regions.length > 0,
+    trip.basket.length > 0,
+    trip.step >= 3 || Object.keys(trip.assignment).length > 0
+  ];
   const go = (i: number) => {
     if (i === 2) trip.goToBasket();
     else if (i === 3) trip.goToPlan();
@@ -47,7 +55,7 @@ export function Stepper({ trip }: { trip: TripState }) {
               aria-current={current ? 'step' : undefined}
               className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all ${
                 current
-                  ? 'bg-emerald-600 text-white shadow-md shadow-emerald-950/40'
+                  ? 'bg-emerald-600 text-white shadow-md'
                   : done
                     ? 'bg-emerald-950/70 text-emerald-300 border border-emerald-800 hover:bg-emerald-900/70 cursor-pointer'
                     : canGo
@@ -56,8 +64,8 @@ export function Stepper({ trip }: { trip: TripState }) {
               }`}
             >
               <span
-                className={`w-5 h-5 rounded-full flex items-center justify-center text-[11px] font-bold ${
-                  current ? 'bg-white text-emerald-700' : done ? 'bg-emerald-600 text-white' : 'bg-stone-800 text-stone-400'
+                className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold ${
+                  current ? 'bg-white text-emerald-600' : done ? 'bg-emerald-600 text-white' : 'bg-stone-800 text-stone-400'
                 }`}
               >
                 {done ? <Check className="w-3 h-3" /> : i + 1}
@@ -100,7 +108,7 @@ export function StepNav({
       {onBack ? (
         <button
           onClick={onBack}
-          className="px-3 py-2.5 rounded-xl text-sm font-semibold text-stone-300 hover:text-white hover:bg-stone-800 flex items-center gap-1.5 cursor-pointer transition-colors"
+          className="px-3 py-2.5 rounded-xl text-sm font-semibold text-stone-300 hover:text-stone-50 hover:bg-stone-800 flex items-center gap-1.5 cursor-pointer transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
           <span className="hidden sm:inline">{t.trip.back}</span>
@@ -113,7 +121,7 @@ export function StepNav({
         <button
           onClick={onNext}
           disabled={nextDisabled}
-          className="px-5 py-2.5 rounded-xl font-bold text-sm bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white shadow-lg shadow-emerald-950/50 flex items-center gap-2 transition-all cursor-pointer active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed"
+          className="px-5 py-2.5 rounded-xl font-bold text-sm bg-emerald-500 hover:bg-(--action-hover) text-white shadow-lg flex items-center gap-2 transition-all cursor-pointer active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed"
         >
           {nextLabel}
           <ArrowRight className="w-4 h-4" />
@@ -135,7 +143,7 @@ export function StepRegions({ trip }: { trip: TripState }) {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
         <div className="lg:col-span-7 bg-stone-900 border border-stone-800 rounded-2xl p-3 sm:p-4 shadow-xl">
           <BaliMap selectedRegions={trip.regions} onToggleRegion={trip.toggleRegion} regionLabel={t.trip.regionWord} />
-          <p className="text-[11px] text-stone-500 px-1 pt-1">{t.trip.regionsHint}</p>
+          <p className="text-xs text-stone-500 px-1 pt-1">{t.trip.regionsHint}</p>
         </div>
         <div className="lg:col-span-5 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-2 gap-2" role="group" aria-label={t.trip.regionsTitle}>
           {BALI_REGIONS.map((r) => {
@@ -152,16 +160,16 @@ export function StepRegions({ trip }: { trip: TripState }) {
                     : 'bg-stone-900 border-stone-700 hover:border-stone-500'
                 }`}
               >
-                <span className="flex items-center gap-2 text-sm font-bold text-white">
+                <span className="flex items-center gap-2 text-sm font-bold text-stone-50">
                   <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: r.color }} />
                   {r.name}
                   {selected ? (
                     <Check className="w-3.5 h-3.5 text-emerald-400 ml-auto" />
                   ) : (
-                    <span className="ml-auto text-[10px] font-semibold text-stone-500">{n}</span>
+                    <span className="ml-auto text-xs font-semibold text-stone-500">{n}</span>
                   )}
                 </span>
-                <span className="block text-[10px] text-stone-400 truncate mt-0.5">{r.areas.slice(0, 3).join(' · ')}</span>
+                <span className="block text-xs text-stone-400 truncate mt-0.5">{r.areas.slice(0, 3).join(' · ')}</span>
               </button>
             );
           })}
@@ -222,7 +230,7 @@ export function StepCategories({ trip }: { trip: TripState }) {
               aria-pressed={selected}
               className={`group text-left rounded-2xl border p-5 flex items-start gap-4 transition-all cursor-pointer ${
                 selected
-                  ? 'bg-emerald-950/60 border-emerald-500 ring-1 ring-emerald-500/60 shadow-lg shadow-emerald-950/40'
+                  ? 'bg-emerald-950/60 border-emerald-500 ring-1 ring-emerald-500/60 shadow-lg'
                   : 'bg-stone-900 border-stone-700 hover:border-stone-500'
               }`}
             >
@@ -234,12 +242,12 @@ export function StepCategories({ trip }: { trip: TripState }) {
                 {CATEGORY_ICONS[c]}
               </span>
               <span className="flex-1 min-w-0">
-                <span className="flex items-center gap-2 text-base font-bold text-white">
+                <span className="flex items-center gap-2 text-base font-bold text-stone-50">
                   {labels[c][0]}
                   {selected && <Check className="w-4 h-4 text-emerald-400" />}
                 </span>
                 <span className="block text-xs text-stone-400 mt-1">{labels[c][1]}</span>
-                <span className={`inline-block mt-2 text-[11px] font-semibold ${n ? 'text-emerald-400' : 'text-stone-600'}`}>
+                <span className={`inline-block mt-2 text-xs font-semibold ${n ? 'text-emerald-400' : 'text-stone-600'}`}>
                   {n} ✓
                 </span>
               </span>
@@ -283,10 +291,10 @@ export function StepBasket({ trip }: { trip: TripState }) {
 
       {byRegion.map(({ region, items }) => (
         <section key={region.id} className="space-y-2">
-          <h3 className="flex items-center gap-2 text-sm font-bold text-white">
+          <h3 className="flex items-center gap-2 text-sm font-bold text-stone-50">
             <span className="w-3 h-3 rounded-full" style={{ background: region.color }} />
             {region.name}
-            <span className="text-[11px] font-normal text-stone-500">{region.areas.slice(0, 3).join(' · ')}</span>
+            <span className="text-xs font-normal text-stone-500">{region.areas.slice(0, 3).join(' · ')}</span>
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
             {items.map((p) => (
@@ -301,7 +309,7 @@ export function StepBasket({ trip }: { trip: TripState }) {
           <h3 className="flex items-center gap-2 text-sm font-bold text-amber-300">
             <MapPin className="w-4 h-4" />
             {t.trip.nearbyTitle}
-            <span className="text-[11px] font-normal text-stone-500">{t.trip.nearbyDesc}</span>
+            <span className="text-xs font-normal text-stone-500">{t.trip.nearbyDesc}</span>
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
             {nearby.map(({ partner, km }) => (
@@ -336,6 +344,15 @@ export function StepBasket({ trip }: { trip: TripState }) {
   );
 }
 
+/** quiet "Not yet verified" note for partners without the badge */
+function UnverifiedNote({ partnerId }: { partnerId: string }) {
+  const { t } = useLanguage();
+  const { statusOf } = usePartners();
+  const { status } = statusOf(partnerId);
+  if (status === 'verified') return null;
+  return <span className="text-stone-500">{status === 'in_review' ? t.verify.inReview : t.verify.notVerified}</span>;
+}
+
 function BasketRow({
   partner,
   inBasket,
@@ -352,7 +369,7 @@ function BasketRow({
   return (
     <div
       className={`flex items-center gap-3 rounded-xl border p-2.5 pr-3 transition-all ${
-        inBasket ? 'bg-stone-900 border-emerald-800/70' : 'bg-stone-900/50 border-stone-800 opacity-80'
+        inBasket ? 'bg-stone-900 border-emerald-800/70' : 'bg-stone-900/50 border-stone-800'
       }`}
     >
       <div
@@ -361,14 +378,18 @@ function BasketRow({
         aria-hidden="true"
       />
       <div className="min-w-0 flex-1">
-        <div className="text-sm font-bold text-white truncate">{partner.name}</div>
-        <div className="flex flex-wrap items-center gap-1.5 mt-0.5 text-[10px]">
+        <div className="text-sm font-bold text-stone-50 flex items-center gap-1.5 min-w-0">
+          <span className="truncate">{partner.name}</span>
+          <VerificationBadge partnerId={partner.id} compact />
+        </div>
+        <div className="flex flex-wrap items-center gap-1.5 mt-0.5 text-xs">
           <span className="px-1.5 py-0.5 rounded bg-stone-800 text-stone-300 border border-stone-700">{partner.category}</span>
           <span className="text-stone-400 truncate">
             {partner.area ? `${partner.area} · ` : ''}
             {region?.name}
           </span>
           {note && <span className="text-amber-300 font-semibold">{note}</span>}
+          <UnverifiedNote partnerId={partner.id} />
           {partner.isSample && (
             <span className="px-1.5 py-0.5 rounded bg-stone-800/80 text-stone-400 border border-dashed border-stone-600">
               {t.trip.sampleListing}
@@ -381,7 +402,7 @@ function BasketRow({
         aria-pressed={inBasket}
         className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 transition-all cursor-pointer active:scale-95 ${
           inBasket
-            ? 'bg-emerald-600 text-white hover:bg-emerald-500'
+            ? 'bg-emerald-600 text-white hover:bg-(--action-hover)'
             : 'bg-stone-800 text-emerald-300 border border-emerald-800 hover:bg-emerald-950'
         }`}
         title={inBasket ? t.trip.added : t.trip.add}
@@ -396,7 +417,7 @@ function BasketRow({
 export function StepHeader({ title, desc }: { title: string; desc: string }) {
   return (
     <div>
-      <h2 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight">{title}</h2>
+      <h2 className="text-xl sm:text-2xl font-extrabold text-stone-50 tracking-tight">{title}</h2>
       <p className="text-sm text-stone-400 mt-1">{desc}</p>
     </div>
   );

@@ -6,6 +6,7 @@ import {
   PartnerCategory
 } from '@/data/curatedPartners';
 import { usePartners } from '@/context/PartnersContext';
+import { useAccounts } from '@/lib/accounts';
 import { useSessionState } from '@/context/SessionStateContext';
 import type { PartnerProfile } from '@/lib/schemas';
 import type { StreamResultMeta } from '@/lib/streamProtocol';
@@ -39,6 +40,9 @@ export function PartnerPlatform({
   onInitialPartnerApplied
 }: PartnerPlatformProps) {
   const { partners, addPartner } = usePartners();
+  const { partner: account, savePartner } = useAccounts();
+  const [publishing, setPublishing] = useState(false);
+  const [publishError, setPublishError] = useState<string | null>(null);
   const { language, t } = useLanguage();
 
   // Form Inputs
@@ -284,8 +288,8 @@ export function PartnerPlatform({
         t.stream.partnerStatusAudit
       ][activeSection];
 
-  const handlePublishToEcosystem = () => {
-    if (!generatedResult) return;
+  const handlePublishToEcosystem = async () => {
+    if (!generatedResult || publishing) return;
 
     const categoryHeroImages: Record<PartnerCategory, string> = {
       Destination:
@@ -298,15 +302,17 @@ export function PartnerPlatform({
         'https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=1000&q=80'
     };
 
+    // Re-publishing updates the same listing (it goes back to "not yet verified" until re-checked)
+    const listingId = account?.publishedPartnerId ?? `partner-${Date.now()}`;
     const newPartner: CuratedPartner = {
-      id: `partner-${Date.now()}`,
+      id: listingId,
       name: businessName,
       category,
       group: 'Group A',
       location,
       priceTier,
       familyTags: generatedResult.suggestedFamilyTags || [
-        'Verified Local',
+        'Local business',
         'Hands-on Quest',
         'Family Friendly'
       ],
@@ -317,10 +323,20 @@ export function PartnerPlatform({
       heroImage: categoryHeroImages[category],
       shortHighlight: generatedResult.shortHighlight || generatedResult.headline,
       badgeTitle: generatedResult.gamifiedMission?.badgeTitle || 'Ecosystem Steward',
-      isNewlyPublished: true
+      isNewlyPublished: true,
+      // place it on the map / trip planner using the region from sign-up
+      ...(account ? { regionId: account.regionId, area: account.area } : {})
     };
 
-    addPartner(newPartner);
+    setPublishing(true);
+    setPublishError(null);
+    const result = await addPartner(newPartner);
+    setPublishing(false);
+    if (!result.ok) {
+      setPublishError(result.error ?? t.verify.publishFailed);
+      return;
+    }
+    if (account && account.publishedPartnerId !== listingId) savePartner({ ...account, publishedPartnerId: listingId });
     setLastPublishedPartner(newPartner);
     setPublishedSuccess(true);
   };
@@ -328,14 +344,9 @@ export function PartnerPlatform({
   return (
     <div className="py-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-10">
       {/* Header Banner */}
-      <div className="relative rounded-3xl bg-gradient-to-r from-stone-900 via-emerald-950 to-stone-900 border border-emerald-800/40 p-8 sm:p-10 shadow-2xl overflow-hidden">
-        <div className="absolute top-0 right-0 -mr-16 -mt-16 w-80 h-80 rounded-full bg-emerald-500/10 blur-3xl pointer-events-none" />
-        <div className="relative z-10 max-w-3xl space-y-4">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-900/60 border border-emerald-700/60 text-emerald-300 text-xs font-semibold">
-            <Store className="w-3.5 h-3.5" />
-            <span>{t.partner.heroTag}</span>
-          </div>
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight leading-tight">
+      <div className="max-w-3xl">
+                <div className="relative z-10 max-w-3xl space-y-4">
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-stone-50 tracking-tight leading-tight max-w-[24ch]">
             {t.partner.heroTitle}
           </h1>
           <p className="text-stone-300 text-base sm:text-lg leading-relaxed">
@@ -343,15 +354,15 @@ export function PartnerPlatform({
           </p>
 
           <div className="flex flex-wrap items-center gap-3 pt-2 text-xs">
-            <span className="bg-stone-900/80 border border-stone-800 px-3 py-1.5 rounded-lg text-stone-300 flex items-center gap-1.5">
+            <span className="text-stone-400 flex items-center gap-1.5">
               <ShieldCheck className="w-4 h-4 text-emerald-400" />
               {t.partner.groundingBadge}
             </span>
-            <span className="bg-stone-900/80 border border-stone-800 px-3 py-1.5 rounded-lg text-stone-300 flex items-center gap-1.5">
+            <span className="text-stone-400 flex items-center gap-1.5">
               <Sparkles className="w-4 h-4 text-emerald-400" />
               {t.partner.structuredOutputBadge}
             </span>
-            <span className="bg-stone-900/80 border border-stone-800 px-3 py-1.5 rounded-lg text-stone-300 flex items-center gap-1.5">
+            <span className="text-stone-400 flex items-center gap-1.5">
               <Globe className="w-4 h-4 text-amber-400" />
               {t.partner.oneClickPublishBadge}
             </span>
@@ -361,18 +372,19 @@ export function PartnerPlatform({
 
       {/* Published Success Alert */}
       {publishedSuccess && lastPublishedPartner && (
-        <div className="bg-gradient-to-r from-emerald-950 via-teal-950 to-stone-900 border-2 border-emerald-500/80 rounded-2xl p-6 shadow-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4 animate-in fade-in slide-in-from-top-4 duration-300">
+        <div className=" bg-emerald-950 border-2 border-emerald-500/80 rounded-2xl p-6 shadow-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4 animate-in fade-in slide-in-from-top-4 duration-300">
           <div className="flex items-center gap-3.5">
             <div className="w-12 h-12 rounded-xl bg-emerald-500/20 border border-emerald-400 text-emerald-400 flex items-center justify-center shrink-0">
               <CheckCircle2 className="w-7 h-7" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-white">
+              <h3 className="text-base font-bold text-stone-50">
                 &ldquo;{lastPublishedPartner.name}&rdquo; {t.partner.publishedSuccessTitle}
               </h3>
               <p className="text-xs text-emerald-200/90 mt-0.5">
                 {t.partner.publishedSuccessDesc} ({partners.length} {t.nav.partnersActive})
               </p>
+              <p className="text-xs text-stone-300 mt-1">{t.verify.publishedPending}</p>
             </div>
           </div>
 
@@ -380,7 +392,7 @@ export function PartnerPlatform({
             {onNavigateToTraveler && (
               <button
                 onClick={onNavigateToTraveler}
-                className="px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-stone-950 font-bold text-xs flex items-center gap-2 shadow-lg shadow-emerald-950/50 cursor-pointer transition-all"
+                className="px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-(--action-hover) text-white font-bold text-xs flex items-center gap-2 shadow-lg cursor-pointer transition-all"
               >
                 <span>{t.partner.btnViewInTraveler}</span>
                 <ArrowRight className="w-4 h-4" />
@@ -396,7 +408,7 @@ export function PartnerPlatform({
         <div className="lg:col-span-5 bg-stone-900 border border-stone-800 rounded-2xl p-6 sm:p-7 shadow-xl space-y-6">
           <div className="border-b border-stone-800 pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div>
-              <h2 className="text-lg font-bold text-white flex items-center gap-2">
+              <h2 className="text-lg font-bold text-stone-50 flex items-center gap-2">
                 <Store className="w-5 h-5 text-emerald-400" />
                 {t.partner.formTitle}
               </h2>
@@ -410,7 +422,7 @@ export function PartnerPlatform({
               <button
                 type="button"
                 onClick={() => loadPresetExample('salt')}
-                className="text-[11px] px-2.5 py-1 rounded bg-stone-800 hover:bg-stone-700 text-emerald-400 border border-stone-700 transition-colors cursor-pointer"
+                className="text-xs px-2.5 py-1 rounded bg-stone-800 hover:bg-stone-700 text-emerald-400 border border-stone-700 transition-colors cursor-pointer"
                 title="Load sample Salt Atelier facts"
               >
                 {t.partner.sampleSalt}
@@ -418,7 +430,7 @@ export function PartnerPlatform({
               <button
                 type="button"
                 onClick={() => loadPresetExample('vanilla')}
-                className="text-[11px] px-2.5 py-1 rounded bg-stone-800 hover:bg-stone-700 text-indigo-300 border border-stone-700 transition-colors cursor-pointer"
+                className="text-xs px-2.5 py-1 rounded bg-stone-800 hover:bg-stone-700 text-indigo-300 border border-stone-700 transition-colors cursor-pointer"
                 title="Load sample Vanilla Haven facts"
               >
                 {t.partner.sampleStay}
@@ -426,7 +438,7 @@ export function PartnerPlatform({
               <button
                 type="button"
                 onClick={() => loadPresetExample('herbal')}
-                className="text-[11px] px-2.5 py-1 rounded bg-stone-800 hover:bg-stone-700 text-amber-300 border border-stone-700 transition-colors cursor-pointer"
+                className="text-xs px-2.5 py-1 rounded bg-stone-800 hover:bg-stone-700 text-amber-300 border border-stone-700 transition-colors cursor-pointer"
                 title="Load sample Ancestral Oven facts"
               >
                 {t.partner.sampleCulinary}
@@ -436,10 +448,10 @@ export function PartnerPlatform({
 
           {/* Business Name */}
           <div className="space-y-1.5">
-            <label className="text-xs font-bold uppercase tracking-wider text-stone-300">
+            <label htmlFor="pp-field-1" className="text-xs font-bold text-stone-300">
               {t.partner.labelBusinessName}
             </label>
-            <input
+            <input id="pp-field-1"
               type="text"
               value={businessName}
               onChange={(e) => {
@@ -454,10 +466,10 @@ export function PartnerPlatform({
           {/* Category & Price Tier */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <label className="text-xs font-bold uppercase tracking-wider text-stone-300">
+              <label htmlFor="pp-field-2" className="text-xs font-bold text-stone-300">
                 {t.partner.labelCategory}
               </label>
-              <select
+              <select id="pp-field-2"
                 value={category}
                 onChange={(e) => setCategory(e.target.value as PartnerCategory)}
                 className="w-full bg-stone-800 border border-stone-700 text-stone-100 rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500"
@@ -470,10 +482,10 @@ export function PartnerPlatform({
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-bold uppercase tracking-wider text-stone-300">
+              <label htmlFor="pp-field-3" className="text-xs font-bold text-stone-300">
                 {t.partner.labelPriceTier}
               </label>
-              <select
+              <select id="pp-field-3"
                 value={priceTier}
                 onChange={(e) => setPriceTier(e.target.value as '$' | '$$' | '$$$' | '$$$$')}
                 className="w-full bg-stone-800 border border-stone-700 text-stone-100 rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500"
@@ -489,10 +501,10 @@ export function PartnerPlatform({
           {/* Location & WhatsApp */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <label className="text-xs font-bold uppercase tracking-wider text-stone-300">
+              <label htmlFor="pp-field-4" className="text-xs font-bold text-stone-300">
                 {t.partner.labelLocation}
               </label>
-              <input
+              <input id="pp-field-4"
                 type="text"
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
@@ -502,15 +514,15 @@ export function PartnerPlatform({
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-bold uppercase tracking-wider text-stone-300">
+              <label htmlFor="pp-field-5" className="text-xs font-bold text-stone-300">
                 {t.partner.labelWhatsapp}
               </label>
-              <input
+              <input id="pp-field-5"
                 type="text"
                 value={whatsappNumber}
                 onChange={(e) => setWhatsappNumber(e.target.value)}
                 placeholder="+6281234567890"
-                className="w-full bg-stone-800 border border-stone-700 text-stone-100 placeholder-stone-500 rounded-xl px-3 py-2 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full bg-stone-800 border border-stone-700 text-stone-100 placeholder-stone-500 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500"
               />
             </div>
           </div>
@@ -518,7 +530,7 @@ export function PartnerPlatform({
           {/* Raw Verified Facts Input List */}
           <div className="space-y-2.5">
             <div className="flex items-center justify-between">
-              <label className="text-xs font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
+              <label className="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
                 <ShieldCheck className="w-4 h-4" />
                 <span>{t.partner.labelRawFacts}</span>
               </label>
@@ -531,19 +543,20 @@ export function PartnerPlatform({
                 <span>{t.partner.btnAddFact}</span>
               </button>
             </div>
-            <p className="text-[11px] text-stone-400">
+            <p className="text-xs text-stone-400">
               {t.partner.rawFactsDesc}
             </p>
 
             <div className="space-y-2">
               {rawFacts.map((fact, index) => (
                 <div key={index} className="flex items-center gap-2">
-                  <span className="text-xs font-mono text-stone-500 w-4 text-right">
+                  <span className="text-xs text-stone-500 w-4 text-right">
                     {index + 1}.
                   </span>
                   <input
                     type="text"
                     value={fact}
+                    aria-label={`${t.partner.labelRawFacts} ${index + 1}`}
                     onChange={(e) => handleUpdateFact(index, e.target.value)}
                     placeholder={t.partner.placeholderFact}
                     className="flex-1 bg-stone-800 border border-stone-700 text-stone-100 placeholder-stone-500 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500"
@@ -554,6 +567,7 @@ export function PartnerPlatform({
                       onClick={() => handleRemoveFact(index)}
                       className="p-1.5 text-stone-500 hover:text-red-400 transition-colors cursor-pointer"
                       title="Remove fact"
+                      aria-label="Remove fact"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -574,7 +588,7 @@ export function PartnerPlatform({
           <button
             onClick={handleGenerateAssistant}
             disabled={isLoading}
-            className="w-full py-3.5 px-4 rounded-xl font-bold text-xs bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white shadow-lg shadow-emerald-950/50 flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-[0.99] disabled:opacity-60 disabled:cursor-wait"
+            className="w-full py-3.5 px-4 rounded-xl font-bold text-xs bg-emerald-500 hover:bg-(--action-hover) text-white shadow-lg flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-[0.99] disabled:opacity-60 disabled:cursor-wait"
           >
             {isLoading ? (
               <>
@@ -607,7 +621,7 @@ export function PartnerPlatform({
             <div className="space-y-6">
               {/* Top bar: live progress while writing, Publish once complete */}
               <div
-                className={`border rounded-2xl p-4 sm:p-5 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4 bg-gradient-to-r from-stone-900 to-emerald-950/40 ${
+                className={`border rounded-2xl p-4 sm:p-5 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4 bg-stone-900 ${
                   isLoading ? 'thinking-glow' : 'border-emerald-700/60'
                 }`}
               >
@@ -618,7 +632,7 @@ export function PartnerPlatform({
                   <div className="min-w-0 flex-1">
                     {isLoading ? (
                       <>
-                        <span key={partnerStatus} className="text-xs font-bold text-white block stream-in" role="status" aria-live="polite">
+                        <span key={partnerStatus} className="text-xs font-bold text-stone-50 block stream-in" role="status" aria-live="polite">
                           {partnerStatus}
                         </span>
                         {/* 4-step progress */}
@@ -626,7 +640,7 @@ export function PartnerPlatform({
                           {partnerSteps.map((label, i) => (
                             <div key={label} className="flex items-center gap-1.5">
                               <span
-                                className={`text-[10px] px-2 py-0.5 rounded-full border transition-colors duration-500 ${
+                                className={`text-xs px-2 py-0.5 rounded-full border transition-colors duration-500 ${
                                   i < activeSection
                                     ? 'bg-emerald-600 border-emerald-500 text-white'
                                     : i === activeSection
@@ -645,10 +659,10 @@ export function PartnerPlatform({
                     ) : (
                       <>
                         <div className="flex flex-wrap items-center gap-2">
-                          <span className="text-xs font-bold text-white">{t.partner.kitReady}</span>
+                          <span className="text-xs font-bold text-stone-50">{t.partner.kitReady}</span>
                           <AiSourceBadge meta={resultMeta} liveLabel={t.stream.liveAi} offlineLabel={t.stream.offlineDemo} />
                         </div>
-                        <p className="text-[11px] text-stone-400">{t.partner.kitSubtitle}</p>
+                        <p className="text-xs text-stone-400">{t.partner.kitSubtitle}</p>
                       </>
                     )}
                   </div>
@@ -656,15 +670,20 @@ export function PartnerPlatform({
 
                 {/* Publish to Ecosystem Button */}
                 <button
-                  onClick={handlePublishToEcosystem}
-                  disabled={isLoading}
+                  onClick={() => void handlePublishToEcosystem()}
+                  disabled={isLoading || publishing}
                   title={isLoading ? t.stream.publishLocked : undefined}
-                  className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-stone-950 font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-emerald-950/60 transition-all cursor-pointer whitespace-nowrap active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-emerald-500"
+                  className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-(--action-hover) text-white font-bold text-xs flex items-center justify-center gap-2 shadow-lg transition-all cursor-pointer whitespace-nowrap active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-(--action-hover)"
                 >
                   <Globe className="w-4 h-4" />
                   <span>{t.partner.btnPublish}</span>
                 </button>
               </div>
+              {publishError && (
+                <p role="alert" className="text-sm text-red-400 font-semibold -mt-2">
+                  {t.verify.publishFailed}: {publishError}
+                </p>
+              )}
 
               {/* 1. Polished Partner Profile & Experience Description */}
               <div className="bg-stone-900 border border-stone-800 rounded-2xl p-6 shadow-xl space-y-4 stream-in">
@@ -674,14 +693,14 @@ export function PartnerPlatform({
                       1
                     </span>
                     <div>
-                      <h4 className="text-sm font-bold text-white">{t.partner.section1Title}</h4>
-                      <p className="text-[11px] text-stone-400">{t.partner.section1Desc}</p>
+                      <h4 className="text-sm font-bold text-stone-50">{t.partner.section1Title}</h4>
+                      <p className="text-xs text-stone-400">{t.partner.section1Desc}</p>
                     </div>
                   </div>
                   {!isLoading && (
                     <button
                       onClick={() => handleCopy(`${view.headline}\n\n${view.polishedDescription}`, 'profile')}
-                      className="p-1.5 rounded-lg bg-stone-800 hover:bg-stone-700 text-stone-300 hover:text-white transition-colors cursor-pointer text-xs flex items-center gap-1"
+                      className="p-1.5 rounded-lg bg-stone-800 hover:bg-stone-700 text-stone-300 hover:text-stone-50 transition-colors cursor-pointer text-xs flex items-center gap-1"
                     >
                       {copiedKey === 'profile' ? (
                         <Check className="w-3.5 h-3.5 text-emerald-400" />
@@ -715,7 +734,7 @@ export function PartnerPlatform({
                       {view.suggestedFamilyTags.map((tag, idx) => (
                         <span
                           key={idx}
-                          className="text-[10px] bg-stone-800 text-stone-300 px-2 py-0.5 rounded-md border border-stone-700 stream-in"
+                          className="text-xs bg-stone-800 text-stone-300 px-2 py-0.5 rounded-md border border-stone-700 stream-in"
                         >
                           {tag}
                         </span>
@@ -734,8 +753,8 @@ export function PartnerPlatform({
                         2
                       </span>
                       <div>
-                        <h4 className="text-sm font-bold text-white">{t.partner.section2Title}</h4>
-                        <p className="text-[11px] text-stone-400">{t.partner.section2Desc}</p>
+                        <h4 className="text-sm font-bold text-stone-50">{t.partner.section2Title}</h4>
+                        <p className="text-xs text-stone-400">{t.partner.section2Desc}</p>
                       </div>
                     </div>
                     {!isLoading && (
@@ -746,7 +765,7 @@ export function PartnerPlatform({
                             'social'
                           )
                         }
-                        className="p-1.5 rounded-lg bg-stone-800 hover:bg-stone-700 text-stone-300 hover:text-white transition-colors cursor-pointer text-xs flex items-center gap-1"
+                        className="p-1.5 rounded-lg bg-stone-800 hover:bg-stone-700 text-stone-300 hover:text-stone-50 transition-colors cursor-pointer text-xs flex items-center gap-1"
                       >
                         {copiedKey === 'social' ? (
                           <Check className="w-3.5 h-3.5 text-emerald-400" />
@@ -778,7 +797,7 @@ export function PartnerPlatform({
                         {view.socialMediaCopy.hashtags.map((tag, idx) => (
                           <span
                             key={idx}
-                            className="text-[10px] text-emerald-400 font-mono bg-emerald-950/40 border border-emerald-900 px-2 py-0.5 rounded stream-in"
+                            className="text-xs text-emerald-400 bg-emerald-950/40 border border-emerald-900 px-2 py-0.5 rounded stream-in"
                           >
                             {tag}
                           </span>
@@ -798,8 +817,8 @@ export function PartnerPlatform({
                         3
                       </span>
                       <div>
-                        <h4 className="text-sm font-bold text-white">{t.partner.section3Title}</h4>
-                        <p className="text-[11px] text-stone-400">{t.partner.section3Desc}</p>
+                        <h4 className="text-sm font-bold text-stone-50">{t.partner.section3Title}</h4>
+                        <p className="text-xs text-stone-400">{t.partner.section3Desc}</p>
                       </div>
                     </div>
                     {view.gamifiedMission?.badgeTitle && (
@@ -844,15 +863,15 @@ export function PartnerPlatform({
                         4
                       </span>
                       <div>
-                        <h4 className="text-sm font-bold text-white flex items-center gap-2">
+                        <h4 className="text-sm font-bold text-stone-50 flex items-center gap-2">
                           <ShieldCheck className="w-4 h-4 text-emerald-400" />
                           {t.partner.section4Title}
                         </h4>
-                        <p className="text-[11px] text-stone-400">{t.partner.section4Desc}</p>
+                        <p className="text-xs text-stone-400">{t.partner.section4Desc}</p>
                       </div>
                     </div>
                     {!isLoading && (
-                      <span className="text-[11px] text-emerald-300 font-bold bg-emerald-950 px-2.5 py-0.5 rounded border border-emerald-800 stream-in">
+                      <span className="text-xs text-emerald-300 font-bold bg-emerald-950 px-2.5 py-0.5 rounded border border-emerald-800 stream-in">
                         {t.partner.groundedStatus}
                       </span>
                     )}
@@ -872,7 +891,7 @@ export function PartnerPlatform({
                           </span>
                         </div>
                         {item.howItWasUsed && (
-                          <div className="pl-6 text-[11px] text-emerald-400/90">
+                          <div className="pl-6 text-xs text-emerald-400/90">
                             ↳ <strong>{language === 'id' ? 'Audit Verifikasi:' : 'Grounding Trace:'}</strong>{' '}
                             <StreamText text={item.howItWasUsed} active={isActive(`groundingChecklist.${idx}.howItWasUsed`)} />
                           </div>
@@ -890,9 +909,9 @@ export function PartnerPlatform({
                 <Store className="w-8 h-8" />
               </div>
               <div className="max-w-md space-y-2">
-                <h3 className="text-lg font-bold text-white">{t.partner.emptyTitle}</h3>
+                <h3 className="text-lg font-bold text-stone-50">{t.partner.emptyTitle}</h3>
                 <p className="text-xs text-stone-400">{t.partner.emptyDesc}</p>
-                <p className="text-[11px] text-stone-500">{t.partner.emptySubdesc}</p>
+                <p className="text-xs text-stone-500">{t.partner.emptySubdesc}</p>
               </div>
             </div>
           )}

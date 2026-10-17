@@ -15,14 +15,21 @@ export function Field({
   htmlFor?: string;
   children: React.ReactNode;
 }) {
+  // Tie the error to its field so screen readers announce it with the field
+  const errorId = htmlFor && error ? `${htmlFor}-error` : undefined;
+  const field =
+    errorId && React.isValidElement<React.HTMLAttributes<HTMLElement>>(children)
+      ? React.cloneElement(children, { 'aria-invalid': true, 'aria-describedby': errorId } as React.HTMLAttributes<HTMLElement>)
+      : children;
+
   return (
     <div className="space-y-1.5">
-      <label htmlFor={htmlFor} className="text-xs font-bold uppercase tracking-wider text-stone-300 block">
+      <label htmlFor={htmlFor} className="text-sm font-semibold text-stone-200 block">
         {label}
       </label>
-      {children}
+      {field}
       {error && (
-        <p className="text-[11px] text-red-300 stream-in" role="alert">
+        <p id={errorId} className="text-sm text-red-400 font-semibold stream-in" role="alert">
           {error}
         </p>
       )}
@@ -31,7 +38,7 @@ export function Field({
 }
 
 export const inputClass =
-  'w-full bg-stone-800 border border-stone-700 text-stone-100 placeholder-stone-500 rounded-xl px-3.5 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-shadow';
+  'w-full border rounded-lg px-3.5 py-3 text-base';
 
 /** Accepts an email address or a phone number with at least 8 digits. */
 export function isValidContact(value: string): boolean {

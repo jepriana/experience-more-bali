@@ -6,6 +6,7 @@ import {
   createWhatsAppInquiryUrl
 } from '@/data/curatedPartners';
 import { usePartners } from '@/context/PartnersContext';
+import { VerificationBadge } from '@/components/verification/VerificationBadge';
 import { useSessionState } from '@/context/SessionStateContext';
 import type { ItineraryResponse } from '@/lib/schemas';
 import type { StreamResultMeta } from '@/lib/streamProtocol';
@@ -23,7 +24,8 @@ import {
   ShieldCheck,
   HeartHandshake,
   Check,
-  ExternalLink
+  ExternalLink,
+  BadgeCheck
 } from 'lucide-react';
 
 interface TravelerPlatformProps {
@@ -31,7 +33,8 @@ interface TravelerPlatformProps {
 }
 
 export function TravelerPlatform({ onSelectPartnerForPartnerView }: TravelerPlatformProps) {
-  const { partners, isCustomPartner } = usePartners();
+  const { partners, isCustomPartner, isVerified } = usePartners();
+  const [verifiedOnly, setVerifiedOnly] = useSessionState<boolean>('traveler.verifiedOnly', false);
   const { language, t } = useLanguage();
 
   // Builder Form state
@@ -101,7 +104,7 @@ export function TravelerPlatform({ onSelectPartnerForPartnerView }: TravelerPlat
         pace,
         interests: selectedInterests,
         customNotes,
-        customPartners: partners,
+        customPartners: partners.map((p) => ({ ...p, kossiVerified: isVerified(p.id) })),
         language
       },
       (final) => {
@@ -152,20 +155,15 @@ export function TravelerPlatform({ onSelectPartnerForPartnerView }: TravelerPlat
       partner.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
       partner.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
       partner.familyTags.some((t) => t.toLowerCase().includes(searchQuery.toLowerCase()));
-    return matchesCategory && matchesSearch;
+    return matchesCategory && matchesSearch && (!verifiedOnly || isVerified(partner.id));
   });
 
   return (
     <div className="py-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-12">
       {/* Hero Intro */}
-      <div className="relative rounded-3xl bg-gradient-to-r from-emerald-950 via-teal-950 to-stone-900 border border-emerald-800/40 p-8 sm:p-10 shadow-2xl overflow-hidden">
-        <div className="absolute top-0 right-0 -mr-16 -mt-16 w-80 h-80 rounded-full bg-emerald-500/10 blur-3xl pointer-events-none" />
-        <div className="relative z-10 max-w-3xl space-y-4">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-900/60 border border-emerald-700/60 text-emerald-300 text-xs font-semibold">
-            <Compass className="w-3.5 h-3.5" />
-            <span>{t.traveler.heroTag}</span>
-          </div>
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight leading-tight">
+      <div className="max-w-3xl">
+                <div className="relative z-10 max-w-3xl space-y-4">
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-stone-50 tracking-tight leading-tight max-w-[24ch]">
             {t.traveler.heroTitle}
           </h1>
           <p className="text-stone-300 text-base sm:text-lg leading-relaxed">
@@ -193,7 +191,7 @@ export function TravelerPlatform({ onSelectPartnerForPartnerView }: TravelerPlat
         {/* Left Column: Preferences Form */}
         <div className="lg:col-span-5 bg-stone-900 border border-stone-800 rounded-2xl p-6 sm:p-7 shadow-xl space-y-6">
           <div className="border-b border-stone-800 pb-4">
-            <h2 className="text-xl font-bold text-white flex items-center gap-2">
+            <h2 className="text-xl font-bold text-stone-50 flex items-center gap-2">
               <Sparkles className="w-5 h-5 text-emerald-400" />
               {t.traveler.configTitle}
             </h2>
@@ -204,10 +202,10 @@ export function TravelerPlatform({ onSelectPartnerForPartnerView }: TravelerPlat
 
           {/* Traveler Style */}
           <div className="space-y-2">
-            <label className="text-xs font-semibold uppercase tracking-wider text-stone-300">
+            <label htmlFor="tp-field-1" className="text-xs font-semibold text-stone-300">
               {t.traveler.labelProfile}
             </label>
-            <select
+            <select id="tp-field-1"
               value={travelerStyle}
               onChange={(e) => setTravelerStyle(e.target.value)}
               className="w-full bg-stone-800 border border-stone-700 text-stone-100 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
@@ -230,10 +228,10 @@ export function TravelerPlatform({ onSelectPartnerForPartnerView }: TravelerPlat
           {/* Duration & Pace */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label className="text-xs font-semibold uppercase tracking-wider text-stone-300">
+              <label htmlFor="tp-field-2" className="text-xs font-semibold text-stone-300">
                 {t.traveler.labelDuration}
               </label>
-              <select
+              <select id="tp-field-2"
                 value={duration}
                 onChange={(e) => setDuration(e.target.value)}
                 className="w-full bg-stone-800 border border-stone-700 text-stone-100 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
@@ -244,10 +242,10 @@ export function TravelerPlatform({ onSelectPartnerForPartnerView }: TravelerPlat
               </select>
             </div>
             <div className="space-y-2">
-              <label className="text-xs font-semibold uppercase tracking-wider text-stone-300">
+              <label htmlFor="tp-field-3" className="text-xs font-semibold text-stone-300">
                 {t.traveler.labelPace}
               </label>
-              <select
+              <select id="tp-field-3"
                 value={pace}
                 onChange={(e) => setPace(e.target.value)}
                 className="w-full bg-stone-800 border border-stone-700 text-stone-100 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
@@ -261,9 +259,9 @@ export function TravelerPlatform({ onSelectPartnerForPartnerView }: TravelerPlat
 
           {/* Interests */}
           <div className="space-y-2.5">
-            <label className="text-xs font-semibold uppercase tracking-wider text-stone-300 flex items-center justify-between">
+            <label className="text-xs font-semibold text-stone-300 flex items-center justify-between">
               <span>{t.traveler.labelThemes}</span>
-              <span className="text-[11px] text-stone-400 font-normal">{t.traveler.selectTagsHint}</span>
+              <span className="text-xs text-stone-400 font-normal">{t.traveler.selectTagsHint}</span>
             </label>
             <div className="flex flex-wrap gap-2">
               {interestOptionList.map((item) => {
@@ -289,10 +287,10 @@ export function TravelerPlatform({ onSelectPartnerForPartnerView }: TravelerPlat
 
           {/* Custom Notes */}
           <div className="space-y-2">
-            <label className="text-xs font-semibold uppercase tracking-wider text-stone-300">
+            <label htmlFor="tp-field-4" className="text-xs font-semibold text-stone-300">
               {t.traveler.labelNotes}
             </label>
-            <textarea
+            <textarea id="tp-field-4"
               rows={2}
               value={customNotes}
               onChange={(e) => setCustomNotes(e.target.value)}
@@ -305,7 +303,7 @@ export function TravelerPlatform({ onSelectPartnerForPartnerView }: TravelerPlat
           <button
             onClick={handleGenerateItinerary}
             disabled={isLoading}
-            className="w-full py-3.5 px-4 rounded-xl font-bold text-sm bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white shadow-lg shadow-emerald-950/50 flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-[0.99] disabled:opacity-60 disabled:cursor-wait"
+            className="w-full py-3.5 px-4 rounded-xl font-bold text-sm bg-emerald-500 hover:bg-(--action-hover) text-white shadow-lg flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-[0.99] disabled:opacity-60 disabled:cursor-wait"
           >
             {isLoading ? (
               <>
@@ -376,7 +374,7 @@ export function TravelerPlatform({ onSelectPartnerForPartnerView }: TravelerPlat
                 </div>
 
                 {view.title ? (
-                  <h3 className="text-2xl font-extrabold text-white mt-3 stream-in">
+                  <h3 className="text-2xl font-extrabold text-stone-50 mt-3 stream-in">
                     <StreamText text={view.title} active={isActive('title')} />
                   </h3>
                 ) : (
@@ -401,7 +399,7 @@ export function TravelerPlatform({ onSelectPartnerForPartnerView }: TravelerPlat
 
               {/* Day-by-Day Missions & Partners */}
               <div className="space-y-4">
-                <h4 className="text-sm font-bold uppercase tracking-wider text-stone-400">
+                <h4 className="text-sm font-bold text-stone-400">
                   {t.traveler.journeySequence}
                 </h4>
                 {(view.days ?? []).map((day, idx) => {
@@ -418,7 +416,7 @@ export function TravelerPlatform({ onSelectPartnerForPartnerView }: TravelerPlat
                             {idx + 1}
                           </span>
                           {day.title ? (
-                            <span className="text-sm font-bold text-white">
+                            <span className="text-sm font-bold text-stone-50">
                               <StreamText text={day.title} active={field('title')} />
                             </span>
                           ) : (
@@ -428,7 +426,7 @@ export function TravelerPlatform({ onSelectPartnerForPartnerView }: TravelerPlat
                           )}
                         </div>
                         {partner && (
-                          <span className="text-[11px] px-2.5 py-0.5 rounded-full font-semibold bg-stone-800 text-stone-300 border border-stone-700 stream-in shrink-0">
+                          <span className="text-xs px-2.5 py-0.5 rounded-full font-semibold bg-stone-800 text-stone-300 border border-stone-700 stream-in shrink-0">
                             {partner.category}
                           </span>
                         )}
@@ -471,7 +469,7 @@ export function TravelerPlatform({ onSelectPartnerForPartnerView }: TravelerPlat
                       {/* Direct WhatsApp Inquiry Button — only once the plan is final */}
                       {partner && !isLoading && (
                         <div className="pt-2 flex flex-wrap items-center justify-between gap-2 border-t border-stone-800/80 stream-in">
-                          <span className="text-[11px] text-stone-400">{t.traveler.verifiedChannel}</span>
+                          <span className="text-xs text-stone-400">{t.traveler.verifiedChannel}</span>
                           <a
                             href={createWhatsAppInquiryUrl(
                               partner,
@@ -479,7 +477,7 @@ export function TravelerPlatform({ onSelectPartnerForPartnerView }: TravelerPlat
                             )}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-700 hover:bg-emerald-600 text-white transition-colors cursor-pointer"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600 hover:bg-(--action-hover) text-white transition-colors cursor-pointer"
                           >
                             <MessageCircle className="w-3.5 h-3.5" />
                             <span>{t.traveler.btnInquireWa}</span>
@@ -517,7 +515,7 @@ export function TravelerPlatform({ onSelectPartnerForPartnerView }: TravelerPlat
                 <div className="bg-emerald-950/40 border border-emerald-800/40 rounded-xl p-3.5 flex items-center gap-3 text-xs text-emerald-200 stream-in">
                   <HeartHandshake className="w-5 h-5 text-emerald-400 shrink-0" />
                   <div>
-                    <span className="font-bold text-white block">{t.traveler.pledgeTitle}</span>
+                    <span className="font-bold text-stone-50 block">{t.traveler.pledgeTitle}</span>
                     <StreamText text={view.sustainabilityPledge} active={isActive('sustainabilityPledge')} />
                   </div>
                 </div>
@@ -529,7 +527,7 @@ export function TravelerPlatform({ onSelectPartnerForPartnerView }: TravelerPlat
                 <Compass className="w-8 h-8" />
               </div>
               <div className="max-w-md space-y-2">
-                <h3 className="text-lg font-bold text-white">
+                <h3 className="text-lg font-bold text-stone-50">
                   {t.traveler.emptyTitle}
                 </h3>
                 <p className="text-xs text-stone-400">
@@ -545,10 +543,10 @@ export function TravelerPlatform({ onSelectPartnerForPartnerView }: TravelerPlat
       <div className="space-y-6 pt-4 border-t border-stone-800">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded text-[11px] font-semibold bg-stone-800 text-emerald-400 border border-stone-700">
+            <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded text-xs font-semibold bg-stone-800 text-emerald-400 border border-stone-700">
               {t.traveler.dirBadge}
             </div>
-            <h2 className="text-2xl font-bold text-white mt-1">
+            <h2 className="text-2xl font-bold text-stone-50 mt-1">
               {t.traveler.dirTitle}
             </h2>
             <p className="text-xs text-stone-400">
@@ -592,6 +590,18 @@ export function TravelerPlatform({ onSelectPartnerForPartnerView }: TravelerPlat
                 </button>
               ))}
             </div>
+
+            <button
+              type="button"
+              onClick={() => setVerifiedOnly(!verifiedOnly)}
+              aria-pressed={verifiedOnly}
+              className={`px-3 py-1.5 rounded-xl text-xs font-semibold border flex items-center gap-1.5 transition-colors cursor-pointer ${
+                verifiedOnly ? 'bg-emerald-950 border-emerald-600 text-emerald-300' : 'bg-stone-900 border-stone-700 text-stone-400 hover:text-stone-200'
+              }`}
+            >
+              <BadgeCheck className="w-3.5 h-3.5" aria-hidden="true" />
+              {t.verify.verifiedOnly}
+            </button>
           </div>
         </div>
 
@@ -619,20 +629,21 @@ export function TravelerPlatform({ onSelectPartnerForPartnerView }: TravelerPlat
                     <img
                       src={partner.heroImage}
                       alt={partner.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      className="w-full h-full object-cover "
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-stone-950 via-stone-950/30 to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
                     <div className="absolute top-3 left-3 flex items-center gap-1.5 flex-wrap max-w-[75%]">
                       <span
-                        className={`px-2.5 py-1 rounded-full text-[11px] font-bold border backdrop-blur-md ${categoryBadgeColor}`}
+                        className={`px-2.5 py-1 rounded-full text-xs font-bold border backdrop-blur-md ${categoryBadgeColor}`}
                       >
                         {partner.category}
                       </span>
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-stone-900/80 text-stone-300 border border-stone-700">
+                      <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-stone-900/80 text-stone-300 border border-stone-700">
                         {partner.priceTier}
                       </span>
+                      <VerificationBadge partnerId={partner.id} hideUnverified className="bg-stone-950/85 backdrop-blur-md" />
                       {(partner.isNewlyPublished || isCustomPartner(partner.id)) && (
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500 text-stone-950 shadow-md flex items-center gap-1 animate-pulse">
+                        <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-600 text-white flex items-center gap-1">
                           <Sparkles className="w-3 h-3" />
                           {t.traveler.newlyPublished}
                         </span>
@@ -644,9 +655,10 @@ export function TravelerPlatform({ onSelectPartnerForPartnerView }: TravelerPlat
                       className={`absolute top-3 right-3 p-2 rounded-full backdrop-blur-md border transition-all cursor-pointer ${
                         isSaved
                           ? 'bg-emerald-600 text-white border-emerald-400'
-                          : 'bg-stone-900/70 text-stone-300 border-stone-700 hover:text-white'
+                          : 'bg-stone-900/70 text-stone-300 border-stone-700 hover:text-stone-50'
                       }`}
                       title={isSaved ? 'In Adventure Passport' : 'Add to Passport'}
+                      aria-label={isSaved ? 'In Adventure Passport' : 'Add to Passport'}
                     >
                       <Award className="w-4 h-4" />
                     </button>
@@ -655,8 +667,8 @@ export function TravelerPlatform({ onSelectPartnerForPartnerView }: TravelerPlat
                       <h3 className="text-base font-bold text-white drop-shadow-md leading-snug">
                         {partner.name}
                       </h3>
-                      <p className="text-xs text-stone-300 flex items-center gap-1 mt-0.5 drop-shadow">
-                        <MapPin className="w-3 h-3 text-emerald-400 shrink-0" />
+                      <p className="text-xs text-white/90 flex items-center gap-1 mt-0.5 drop-shadow">
+                        <MapPin className="w-3 h-3 text-white shrink-0" />
                         <span className="truncate">{partner.location}</span>
                       </p>
                     </div>
@@ -673,7 +685,7 @@ export function TravelerPlatform({ onSelectPartnerForPartnerView }: TravelerPlat
                       {partner.familyTags.map((tag, tIdx) => (
                         <span
                           key={tIdx}
-                          className="text-[10px] bg-stone-800 text-stone-300 px-2 py-0.5 rounded-md border border-stone-700/60"
+                          className="text-xs bg-stone-800 text-stone-300 px-2 py-0.5 rounded-md border border-stone-700/60"
                         >
                           {tag}
                         </span>
@@ -684,9 +696,9 @@ export function TravelerPlatform({ onSelectPartnerForPartnerView }: TravelerPlat
                     <div className="bg-stone-950/80 border border-stone-800/80 rounded-xl p-3.5 space-y-2">
                       <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-400">
                         <ShieldCheck className="w-3.5 h-3.5" />
-                        <span>{t.traveler.verifiedFactsLabel}</span>
+                        <span>{isVerified(partner.id) ? t.verify.factsVerified : t.verify.factsShared}</span>
                       </div>
-                      <ul className="text-[11px] text-stone-300 space-y-1.5 list-disc pl-4">
+                      <ul className="text-xs text-stone-300 space-y-1.5 list-disc pl-4">
                         {partner.verifiedFacts.slice(0, 3).map((fact, fIdx) => (
                           <li key={fIdx} className="leading-tight">
                             {fact}
@@ -697,7 +709,7 @@ export function TravelerPlatform({ onSelectPartnerForPartnerView }: TravelerPlat
 
                     {/* Default Mission Badge */}
                     <div className="p-3 bg-amber-950/20 border border-amber-800/30 rounded-xl space-y-1">
-                      <div className="flex items-center gap-1 text-[11px] font-bold text-amber-300">
+                      <div className="flex items-center gap-1 text-xs font-bold text-amber-300">
                         <Award className="w-3.5 h-3.5 text-amber-400" />
                         <span>
                           {t.traveler.defaultMissionLabel} ({partner.badgeTitle}):
@@ -716,7 +728,7 @@ export function TravelerPlatform({ onSelectPartnerForPartnerView }: TravelerPlat
                     href={createWhatsAppInquiryUrl(partner)}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-full py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-md shadow-emerald-950/40"
+                    className="w-full py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-(--action-hover) text-white font-semibold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-md"
                   >
                     <MessageCircle className="w-4 h-4" />
                     <span>
@@ -728,7 +740,7 @@ export function TravelerPlatform({ onSelectPartnerForPartnerView }: TravelerPlat
                   {onSelectPartnerForPartnerView && (
                     <button
                       onClick={() => onSelectPartnerForPartnerView(partner.id)}
-                      className="w-full py-2 px-3 rounded-xl bg-stone-800 hover:bg-stone-700 text-stone-300 hover:text-white font-medium text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer border border-stone-700/60"
+                      className="w-full py-2 px-3 rounded-xl bg-stone-800 hover:bg-stone-700 text-stone-300 hover:text-stone-50 font-medium text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer border border-stone-700/60"
                     >
                       <span>{t.traveler.btnOpenInPartner}</span>
                       <ChevronRight className="w-3.5 h-3.5" />

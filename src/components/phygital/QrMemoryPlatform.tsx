@@ -2,7 +2,6 @@
 
 import React, { useState } from 'react';
 import {
-  QrCode,
   Smartphone,
   Award,
   CheckCircle2,
@@ -208,14 +207,9 @@ export function QrMemoryPlatform() {
   return (
     <div className="py-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-10">
       {/* Hero Banner */}
-      <div className="relative rounded-3xl bg-gradient-to-r from-teal-950 via-stone-900 to-emerald-950 border border-emerald-800/40 p-8 sm:p-10 shadow-2xl overflow-hidden">
-        <div className="absolute top-0 right-0 -mr-16 -mt-16 w-80 h-80 rounded-full bg-teal-500/10 blur-3xl pointer-events-none" />
-        <div className="relative z-10 max-w-3xl space-y-4">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-900/60 border border-emerald-700/60 text-emerald-300 text-xs font-semibold">
-            <QrCode className="w-3.5 h-3.5" />
-            <span>{t.phygital.heroTag}</span>
-          </div>
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight leading-tight">
+      <div className="max-w-3xl">
+                <div className="relative z-10 max-w-3xl space-y-4">
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-stone-50 tracking-tight leading-tight max-w-[24ch]">
             {t.phygital.heroTitle}
           </h1>
           <p className="text-stone-300 text-base sm:text-lg leading-relaxed">
@@ -223,11 +217,11 @@ export function QrMemoryPlatform() {
           </p>
 
           <div className="flex flex-wrap items-center gap-3 pt-2 text-xs">
-            <span className="bg-stone-900/80 border border-stone-800 px-3 py-1.5 rounded-lg text-emerald-300 flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+            <span className="text-stone-400 flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-emerald-500" aria-hidden="true" />
               {t.phygital.liveQrBadge}
             </span>
-            <span className="bg-stone-900/80 border border-stone-800 px-3 py-1.5 rounded-lg text-stone-300 flex items-center gap-1.5">
+            <span className="text-stone-400 flex items-center gap-1.5">
               <Smartphone className="w-4 h-4 text-emerald-400" />
               {t.phygital.simulatedMobileBadge}
             </span>
@@ -243,7 +237,7 @@ export function QrMemoryPlatform() {
             {/* Header & Mockup Switcher */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-stone-800 pb-4">
               <div>
-                <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                <h2 className="text-lg font-bold text-stone-50 flex items-center gap-2">
                   <Layers className="w-5 h-5 text-emerald-400" />
                   {t.phygital.leftHeader}
                 </h2>
@@ -278,7 +272,7 @@ export function QrMemoryPlatform() {
             </div>
 
             {/* Visual Canvas of Mockup */}
-            <div className="relative min-h-[440px] bg-gradient-to-b from-stone-950 via-stone-900 to-stone-950 rounded-2xl border border-stone-800 flex items-center justify-center p-6 overflow-hidden group">
+            <div className="relative min-h-[440px] bg-stone-950 rounded-2xl border border-stone-800 flex items-center justify-center p-6 overflow-hidden group">
               <div
                 className="absolute inset-0 opacity-10 pointer-events-none"
                 style={{
@@ -291,22 +285,22 @@ export function QrMemoryPlatform() {
               {/* T-SHIRT MOCKUP */}
               {activeMockup === 'tshirt' && (
                 <div className="relative w-full max-w-sm flex flex-col items-center">
-                  <div className="relative w-72 h-88 bg-gradient-to-b from-emerald-950 via-stone-900 to-emerald-950 rounded-t-[48px] rounded-b-3xl border-2 border-emerald-700/50 shadow-2xl p-6 flex flex-col items-center justify-between text-center overflow-hidden">
+                  <div className="relative w-72 h-88 bg-emerald-950 rounded-t-[48px] rounded-b-3xl border-2 border-emerald-700/50 shadow-2xl p-6 flex flex-col items-center justify-between text-center overflow-hidden">
                     {/* Ribbed Collar */}
                     <div className="w-28 h-10 border-b-4 border-emerald-500/40 rounded-b-full -mt-7 bg-stone-950/70" />
 
                     {/* Chest Campaign Graphic */}
                     <div className="space-y-1.5 mt-2">
-                      <div className="text-[10px] tracking-widest uppercase font-bold text-emerald-400">
+                      <div className="text-xs font-bold text-emerald-400">
                         {t.phygital.tshirtTitle}
                       </div>
-                      <div className="text-base font-extrabold text-white tracking-wider font-mono">
+                      <div className="text-base font-extrabold text-stone-50 ">
                         {t.phygital.tshirtTag}
                       </div>
                       <div className="inline-block px-2.5 py-0.5 rounded-full bg-emerald-900/60 text-emerald-300 font-extrabold text-xs border border-emerald-600/40">
                         {t.phygital.tshirtQuest}
                       </div>
-                      <p className="text-[10px] text-stone-400 italic">
+                      <p className="text-xs text-stone-400 italic">
                         {t.phygital.tshirtSlogan}
                       </p>
                     </div>
@@ -314,20 +308,20 @@ export function QrMemoryPlatform() {
                     {/* Stitched QR Code Patch (Clickable) */}
                     <div
                       onClick={handleScanClick}
-                      className="cursor-pointer group/patch relative my-3 p-3 bg-stone-950 rounded-xl border-2 border-dashed border-emerald-400/80 shadow-lg hover:border-emerald-300 hover:scale-105 transition-all"
+                      className="cursor-pointer group/patch relative my-3 p-3 bg-stone-950 rounded-xl border-2 border-dashed border-emerald-400/80 shadow-lg hover:border-emerald-300 transition-colors"
                       title="Click to scan QR code!"
                     >
                       {/* Corner Stitching Marks */}
-                      <span className="absolute -top-1.5 -left-1.5 text-[10px] text-amber-400 font-mono">
+                      <span className="absolute -top-1.5 -left-1.5 text-xs text-amber-400 ">
                         ✖
                       </span>
-                      <span className="absolute -top-1.5 -right-1.5 text-[10px] text-amber-400 font-mono">
+                      <span className="absolute -top-1.5 -right-1.5 text-xs text-amber-400 ">
                         ✖
                       </span>
-                      <span className="absolute -bottom-1.5 -left-1.5 text-[10px] text-amber-400 font-mono">
+                      <span className="absolute -bottom-1.5 -left-1.5 text-xs text-amber-400 ">
                         ✖
                       </span>
-                      <span className="absolute -bottom-1.5 -right-1.5 text-[10px] text-amber-400 font-mono">
+                      <span className="absolute -bottom-1.5 -right-1.5 text-xs text-amber-400 ">
                         ✖
                       </span>
 
@@ -380,16 +374,16 @@ export function QrMemoryPlatform() {
                         </svg>
 
                         {isScanning && (
-                          <div className="absolute inset-x-0 h-1 bg-gradient-to-r from-transparent via-emerald-400 to-transparent shadow-[0_0_12px_#34d399] animate-bounce top-1/2" />
+                          <div className="absolute inset-x-0 h-1 bg-emerald-500/60 top-1/2" />
                         )}
                       </div>
 
-                      <div className="mt-1 text-[9px] font-mono text-emerald-400 font-bold uppercase tracking-wider">
+                      <div className="mt-1 text-xs text-emerald-400 font-bold">
                         {t.phygital.tapToScan}
                       </div>
                     </div>
 
-                    <div className="text-[10px] text-stone-400 font-mono">
+                    <div className="text-xs text-stone-400 ">
                       Family Phygital Tag: EMB-2027-DHRMWN
                     </div>
                   </div>
@@ -399,20 +393,20 @@ export function QrMemoryPlatform() {
               {/* PASSPORT PATCH MOCKUP */}
               {activeMockup === 'patch' && (
                 <div className="relative w-full max-w-sm flex flex-col items-center">
-                  <div className="relative w-72 h-80 bg-gradient-to-br from-amber-950 via-stone-900 to-stone-950 rounded-2xl border-4 border-amber-600/70 shadow-2xl p-6 flex flex-col items-center justify-between text-center overflow-hidden">
+                  <div className="relative w-72 h-80 bg-amber-950 rounded-2xl border-4 border-amber-600/70 shadow-2xl p-6 flex flex-col items-center justify-between text-center overflow-hidden">
                     <div className="absolute top-2 left-2 w-3 h-3 rounded-full border border-amber-400 bg-stone-950" />
                     <div className="absolute top-2 right-2 w-3 h-3 rounded-full border border-amber-400 bg-stone-950" />
                     <div className="absolute bottom-2 left-2 w-3 h-3 rounded-full border border-amber-400 bg-stone-950" />
                     <div className="absolute bottom-2 right-2 w-3 h-3 rounded-full border border-amber-400 bg-stone-950" />
 
                     <div className="space-y-1">
-                      <div className="text-[10px] font-bold uppercase tracking-widest text-amber-400">
+                      <div className="text-xs font-bold text-amber-400">
                         {t.phygital.patchTitle}
                       </div>
-                      <h3 className="text-base font-extrabold text-white tracking-wider">
+                      <h3 className="text-base font-extrabold text-stone-50">
                         {t.phygital.patchTag}
                       </h3>
-                      <div className="text-[10px] text-stone-400">
+                      <div className="text-xs text-stone-400">
                         {t.phygital.patchSub}
                       </div>
                     </div>
@@ -420,7 +414,7 @@ export function QrMemoryPlatform() {
                     {/* Stitched QR Code Patch */}
                     <div
                       onClick={handleScanClick}
-                      className="cursor-pointer group/patch relative my-2 p-3 bg-stone-950 rounded-xl border-2 border-dashed border-amber-400 shadow-lg hover:scale-105 transition-all"
+                      className="cursor-pointer group/patch relative my-2 p-3 bg-stone-950 rounded-xl border-2 border-dashed border-amber-400 shadow-lg transition-colors"
                       title="Click to scan QR code!"
                     >
                       <div className="w-28 h-28 bg-white p-2 rounded-lg flex items-center justify-center relative">
@@ -471,16 +465,16 @@ export function QrMemoryPlatform() {
                         </svg>
 
                         {isScanning && (
-                          <div className="absolute inset-x-0 h-1 bg-gradient-to-r from-transparent via-amber-400 to-transparent shadow-[0_0_12px_#f59e0b] animate-bounce top-1/2" />
+                          <div className="absolute inset-x-0 h-1 bg-amber-500/60 top-1/2" />
                         )}
                       </div>
 
-                      <div className="mt-1 text-[9px] font-mono text-amber-400 font-bold uppercase tracking-wider">
+                      <div className="mt-1 text-xs text-amber-400 font-bold">
                         {t.phygital.tapToScan}
                       </div>
                     </div>
 
-                    <div className="text-[10px] text-stone-400 font-mono">
+                    <div className="text-xs text-stone-400 ">
                       Stitched Bamboo Edition • No. 0428
                     </div>
                   </div>
@@ -493,7 +487,7 @@ export function QrMemoryPlatform() {
               <button
                 onClick={handleScanClick}
                 disabled={isScanning}
-                className="w-full py-3.5 px-4 rounded-xl font-bold text-xs bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-stone-950 shadow-lg shadow-emerald-950/60 flex items-center justify-center gap-2 transition-all cursor-pointer"
+                className="w-full py-3.5 px-4 rounded-xl font-bold text-xs bg-emerald-500 hover:bg-(--action-hover) text-white shadow-lg flex items-center justify-center gap-2 transition-all cursor-pointer"
               >
                 <Smartphone className="w-4 h-4" />
                 <span>
@@ -513,14 +507,14 @@ export function QrMemoryPlatform() {
             <div className="grid grid-cols-2 gap-3 pt-2 text-xs">
               <div className="p-3 bg-stone-950/80 border border-stone-800 rounded-xl space-y-1">
                 <span className="font-bold text-emerald-400 block">{t.phygital.preTripTitle}</span>
-                <p className="text-[11px] text-stone-400">
+                <p className="text-xs text-stone-400">
                   {t.phygital.preTripDesc}
                 </p>
               </div>
 
               <div className="p-3 bg-stone-950/80 border border-stone-800 rounded-xl space-y-1">
                 <span className="font-bold text-amber-400 block">{t.phygital.postTripTitle}</span>
-                <p className="text-[11px] text-stone-400">
+                <p className="text-xs text-stone-400">
                   {t.phygital.postTripDesc}
                 </p>
               </div>
@@ -535,7 +529,7 @@ export function QrMemoryPlatform() {
             className={`relative w-full max-w-[380px] bg-stone-950 rounded-[48px] border-[6px] transition-all duration-500 shadow-2xl p-3.5 ${
               mobileGlow
                 ? 'border-emerald-400 shadow-[0_0_35px_rgba(16,185,129,0.35)] scale-[1.01]'
-                : 'border-stone-800 shadow-stone-950'
+                : 'border-stone-800'
             }`}
           >
             {/* Top Speaker & Dynamic Island */}
@@ -547,10 +541,10 @@ export function QrMemoryPlatform() {
             {/* Inner Phone Screen */}
             <div className="relative bg-stone-900 rounded-[38px] overflow-hidden text-stone-100 flex flex-col max-h-[760px] overflow-y-auto no-scrollbar border border-stone-800/80">
               {/* Phone Status Bar */}
-              <div className="px-6 pt-3 pb-2 flex items-center justify-between text-[11px] font-semibold text-stone-400 select-none bg-stone-950/80 backdrop-blur z-20">
+              <div className="px-6 pt-3 pb-2 flex items-center justify-between text-xs font-semibold text-stone-400 select-none bg-stone-950/80 backdrop-blur z-20">
                 <span>09:41</span>
                 <div className="flex items-center gap-1.5">
-                  <span className="text-[10px]">5G</span>
+                  <span className="text-xs">5G</span>
                   <div className="w-5 h-2.5 rounded-sm border border-stone-400 p-0.5 flex items-center">
                     <div className="w-full h-full bg-emerald-400 rounded-2" />
                   </div>
@@ -558,12 +552,12 @@ export function QrMemoryPlatform() {
               </div>
 
               {/* Browser Address Bar */}
-              <div className="px-4 py-1.5 bg-stone-950 border-b border-stone-800 flex items-center gap-2 text-[10px] text-stone-400 font-mono">
+              <div className="px-4 py-1.5 bg-stone-950 border-b border-stone-800 flex items-center gap-2 text-xs text-stone-400 ">
                 <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
                 <span className="truncate flex-1 text-stone-300">
                   https://emb2027.org/m/dhrmwn
                 </span>
-                <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-950 text-emerald-400 font-bold">
+                <span className="text-xs px-1.5 py-0.5 rounded bg-emerald-950 text-emerald-400 font-bold">
                   {t.phygital.verifiedBadge}
                 </span>
               </div>
@@ -571,26 +565,26 @@ export function QrMemoryPlatform() {
               {/* Digital Memory Page Body */}
               <div className="p-4 space-y-6">
                 {/* 1. Family Profile Header */}
-                <div className="relative rounded-2xl overflow-hidden border border-emerald-800/50 p-4 bg-gradient-to-br from-emerald-950 via-stone-900 to-stone-950 space-y-3">
+                <div className="relative rounded-2xl overflow-hidden border border-emerald-800/50 p-4 bg-emerald-950 space-y-3">
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center text-stone-950 font-black text-lg shadow-md">
+                    <div className="w-12 h-12 rounded-2xl bg-emerald-600 flex items-center justify-center text-white font-black text-lg shadow-md">
                       DF
                     </div>
                     <div>
                       <div className="flex items-center gap-1.5">
-                        <h3 className="font-extrabold text-sm text-white">The Dharmawan Family</h3>
+                        <h3 className="font-extrabold text-sm text-stone-50">The Dharmawan Family</h3>
                         <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
                       </div>
-                      <p className="text-[11px] text-emerald-300 font-medium">
+                      <p className="text-xs text-emerald-300 font-medium">
                         4 Explorers: Ayu, Budi, Maya & Rama
                       </p>
-                      <p className="text-[10px] text-stone-400">
+                      <p className="text-xs text-stone-400">
                         Oct 12–14, 2026 • 3 Days Living Heritage Trail
                       </p>
                     </div>
                   </div>
 
-                  <div className="pt-2 border-t border-emerald-900/60 flex items-center justify-between text-[11px]">
+                  <div className="pt-2 border-t border-emerald-900/60 flex items-center justify-between text-xs">
                     <span className="text-stone-300">{t.phygital.questsCompleted}</span>
                     <span className="font-bold text-emerald-400">3 of 3 (100%)</span>
                   </div>
@@ -598,7 +592,7 @@ export function QrMemoryPlatform() {
                   {/* Share Memory Card Button */}
                   <button
                     onClick={() => setIsShareModalOpen(true)}
-                    className="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-stone-950 font-bold text-xs flex items-center justify-center gap-1.5 shadow-md shadow-emerald-950/60 cursor-pointer transition-all"
+                    className="w-full py-2.5 px-3 rounded-xl bg-emerald-500 hover:bg-(--action-hover) text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-md cursor-pointer transition-all"
                   >
                     <Share2 className="w-3.5 h-3.5" />
                     <span>{t.phygital.btnShareCard}</span>
@@ -608,11 +602,11 @@ export function QrMemoryPlatform() {
                 {/* 2. Unlocked Mission Badges */}
                 <div className="space-y-2.5">
                   <div className="flex items-center justify-between">
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-stone-300 flex items-center gap-1.5">
+                    <h4 className="text-xs font-bold text-stone-300 flex items-center gap-1.5">
                       <Award className="w-4 h-4 text-amber-400" />
                       <span>{t.phygital.badgesTitle}</span>
                     </h4>
-                    <span className="text-[10px] text-stone-400">{t.phygital.tapToInspect}</span>
+                    <span className="text-xs text-stone-400">{t.phygital.tapToInspect}</span>
                   </div>
 
                   <div className="grid grid-cols-3 gap-2">
@@ -622,13 +616,13 @@ export function QrMemoryPlatform() {
                         onClick={() => setActiveBadgeModal(badge)}
                         className="p-2.5 bg-stone-950 rounded-xl border border-stone-800 hover:border-amber-500/60 transition-all cursor-pointer text-center space-y-1 group"
                       >
-                        <div className="text-2xl group-hover:scale-110 transition-transform">
+                        <div className="text-2xl ">
                           {badge.icon}
                         </div>
-                        <div className="text-[10px] font-bold text-stone-100 leading-tight">
+                        <div className="text-xs font-bold text-stone-100 leading-tight">
                           {badge.title}
                         </div>
-                        <div className="text-[9px] text-emerald-400 font-mono">
+                        <div className="text-xs text-emerald-400 ">
                           {t.phygital.verifiedBadge}
                         </div>
                       </div>
@@ -638,7 +632,7 @@ export function QrMemoryPlatform() {
 
                 {/* 3. Completed Adventure Itinerary */}
                 <div className="space-y-3">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-stone-300 flex items-center gap-1.5">
+                  <h4 className="text-xs font-bold text-stone-300 flex items-center gap-1.5">
                     <Compass className="w-4 h-4 text-emerald-400" />
                     <span>{t.phygital.itineraryTitle}</span>
                   </h4>
@@ -651,23 +645,23 @@ export function QrMemoryPlatform() {
                       >
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-1.5">
-                            <span className="w-5 h-5 rounded-full bg-emerald-600 text-white font-bold text-[10px] flex items-center justify-center">
+                            <span className="w-5 h-5 rounded-full bg-emerald-600 text-white font-bold text-xs flex items-center justify-center">
                               {item.day}
                             </span>
-                            <span className="text-xs font-bold text-white truncate max-w-[170px]">
+                            <span className="text-xs font-bold text-stone-50 truncate max-w-[170px]">
                               {item.partnerName}
                             </span>
                           </div>
-                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-950 text-emerald-300 font-semibold border border-emerald-800">
+                          <span className="text-xs px-1.5 py-0.5 rounded bg-emerald-950 text-emerald-300 font-semibold border border-emerald-800">
                             {item.category}
                           </span>
                         </div>
 
-                        <div className="text-[11px] text-stone-300 space-y-1">
+                        <div className="text-xs text-stone-300 space-y-1">
                           <p className="leading-snug">
                             <strong>{isId ? 'Misi:' : 'Quest:'}</strong> {item.missionTitle}
                           </p>
-                          <div className="text-[10px] text-emerald-400 flex items-center gap-1">
+                          <div className="text-xs text-emerald-400 flex items-center gap-1">
                             <CheckCircle2 className="w-3 h-3" />
                             <span>{item.verifier}</span>
                           </div>
@@ -679,7 +673,7 @@ export function QrMemoryPlatform() {
 
                 {/* 4. Saved Stories from Visited Partners */}
                 <div className="space-y-3">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-stone-300 flex items-center gap-1.5">
+                  <h4 className="text-xs font-bold text-stone-300 flex items-center gap-1.5">
                     <Camera className="w-4 h-4 text-teal-400" />
                     <span>{t.phygital.storiesTitle}</span>
                   </h4>
@@ -696,16 +690,16 @@ export function QrMemoryPlatform() {
                             alt={story.title}
                             className="w-full h-full object-cover"
                           />
-                          <div className="absolute inset-0 bg-gradient-to-t from-stone-950 via-transparent to-transparent" />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
                           <div className="absolute bottom-2 left-2 right-2 text-xs font-bold text-white drop-shadow">
                             {story.title}
                           </div>
                         </div>
 
                         <div className="p-2.5 pt-0 space-y-2">
-                          <p className="text-[11px] text-stone-300 leading-snug">{story.caption}</p>
+                          <p className="text-xs text-stone-300 leading-snug">{story.caption}</p>
 
-                          <div className="flex items-center justify-between text-[10px] text-stone-400 pt-1 border-t border-stone-800">
+                          <div className="flex items-center justify-between text-xs text-stone-400 pt-1 border-t border-stone-800">
                             <span>{story.partner}</span>
                             <button
                               onClick={() => toggleLike(story.id)}
@@ -726,11 +720,11 @@ export function QrMemoryPlatform() {
                 </div>
 
                 {/* 5. Return Journey Re-Engagement */}
-                <div className="p-3.5 bg-gradient-to-r from-emerald-950/40 to-stone-950 rounded-xl border border-emerald-800/40 text-center space-y-1.5">
+                <div className="p-3.5 bg-emerald-950/40 rounded-xl border border-emerald-800/40 text-center space-y-1.5">
                   <div className="text-xs font-bold text-emerald-300">
                     {t.phygital.returnTitle}
                   </div>
-                  <p className="text-[10px] text-stone-400 leading-snug">
+                  <p className="text-xs text-stone-400 leading-snug">
                     {t.phygital.returnDesc}
                   </p>
                 </div>
@@ -746,13 +740,13 @@ export function QrMemoryPlatform() {
           <div className="bg-stone-900 border border-stone-800 rounded-2xl max-w-md w-full p-6 space-y-5 shadow-2xl relative animate-in fade-in zoom-in-95 duration-200">
             <button
               onClick={() => setIsShareModalOpen(false)}
-              className="absolute top-4 right-4 p-1.5 rounded-lg text-stone-400 hover:text-white bg-stone-800 transition-colors cursor-pointer"
+              className="absolute top-4 right-4 p-1.5 rounded-lg text-stone-400 hover:text-stone-50 bg-stone-800 transition-colors cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>
 
             <div className="space-y-1">
-              <h3 className="text-lg font-bold text-white flex items-center gap-2">
+              <h3 className="text-lg font-bold text-stone-50 flex items-center gap-2">
                 <Share2 className="w-5 h-5 text-emerald-400" />
                 {t.phygital.modalShareTitle}
               </h3>
@@ -762,13 +756,13 @@ export function QrMemoryPlatform() {
             </div>
 
             {/* Visual Card Preview */}
-            <div className="p-5 bg-gradient-to-br from-emerald-950 via-stone-950 to-stone-900 rounded-xl border-2 border-emerald-500/60 shadow-xl space-y-4 text-center">
-              <div className="text-[10px] uppercase tracking-widest font-bold text-emerald-400">
+            <div className="p-5 bg-emerald-950 rounded-xl border-2 border-emerald-500/60 shadow-xl space-y-4 text-center">
+              <div className="text-xs font-bold text-emerald-400">
                 {t.phygital.shareCredentialTag}
               </div>
 
               <div className="space-y-1">
-                <div className="text-lg font-extrabold text-white">The Dharmawan Family</div>
+                <div className="text-lg font-extrabold text-stone-50">The Dharmawan Family</div>
                 <div className="text-xs text-emerald-300">
                   {t.phygital.completedSubtitle}
                 </div>
@@ -778,29 +772,29 @@ export function QrMemoryPlatform() {
               <div className="flex items-center justify-center gap-3 py-2">
                 <div className="p-2 bg-stone-900/80 rounded-lg border border-stone-800 text-center">
                   <div className="text-xl">🌾</div>
-                  <div className="text-[9px] font-bold text-stone-200">
+                  <div className="text-xs font-bold text-stone-200">
                     {isId ? 'Penjaga Air' : 'Subak Guardian'}
                   </div>
                 </div>
                 <div className="p-2 bg-stone-900/80 rounded-lg border border-stone-800 text-center">
                   <div className="text-xl">🍯</div>
-                  <div className="text-[9px] font-bold text-stone-200">
+                  <div className="text-xs font-bold text-stone-200">
                     {isId ? 'Ahli Jamu' : 'Jamu Alchemist'}
                   </div>
                 </div>
                 <div className="p-2 bg-stone-900/80 rounded-lg border border-stone-800 text-center">
                   <div className="text-xl">🎋</div>
-                  <div className="text-[9px] font-bold text-stone-200">
+                  <div className="text-xs font-bold text-stone-200">
                     {isId ? 'Penjaga Bambu' : 'Bamboo Steward'}
                   </div>
                 </div>
               </div>
 
-              <div className="text-[11px] text-stone-300 italic">
+              <div className="text-xs text-stone-300 italic">
                 {t.nav.brandTagline}
               </div>
 
-              <div className="text-[10px] font-mono text-emerald-400 border-t border-emerald-900/60 pt-2">
+              <div className="text-xs text-emerald-400 border-t border-emerald-900/60 pt-2">
                 Verified Link: https://emb2027.org/m/dhrmwn
               </div>
             </div>
@@ -809,7 +803,7 @@ export function QrMemoryPlatform() {
             <div className="flex items-center gap-3">
               <button
                 onClick={handleCopyShareLink}
-                className="flex-1 py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                className="flex-1 py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-(--action-hover) text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
               >
                 {linkCopied ? (
                   <Check className="w-3.5 h-3.5 text-white" />
@@ -844,7 +838,7 @@ export function QrMemoryPlatform() {
           <div className="bg-stone-900 border border-stone-800 rounded-2xl max-w-sm w-full p-6 space-y-4 shadow-2xl relative animate-in fade-in zoom-in-95 duration-200 text-center">
             <button
               onClick={() => setActiveBadgeModal(null)}
-              className="absolute top-4 right-4 p-1.5 rounded-lg text-stone-400 hover:text-white bg-stone-800 transition-colors cursor-pointer"
+              className="absolute top-4 right-4 p-1.5 rounded-lg text-stone-400 hover:text-stone-50 bg-stone-800 transition-colors cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>
@@ -854,10 +848,10 @@ export function QrMemoryPlatform() {
             </div>
 
             <div className="space-y-1">
-              <span className="text-[10px] font-bold uppercase tracking-widest text-amber-400">
+              <span className="text-xs font-bold text-amber-400">
                 {t.phygital.badgeModalVerified}
               </span>
-              <h3 className="text-lg font-extrabold text-white">{activeBadgeModal.title}</h3>
+              <h3 className="text-lg font-extrabold text-stone-50">{activeBadgeModal.title}</h3>
               <p className="text-xs text-emerald-400 font-semibold">{activeBadgeModal.partner}</p>
             </div>
 
@@ -865,9 +859,9 @@ export function QrMemoryPlatform() {
               {activeBadgeModal.description}
             </p>
 
-            <div className="text-[10px] text-stone-400 flex items-center justify-between border-t border-stone-800 pt-3">
+            <div className="text-xs text-stone-400 flex items-center justify-between border-t border-stone-800 pt-3">
               <span>{t.phygital.badgeModalDate}</span>
-              <span className="font-mono text-stone-200">{activeBadgeModal.date}</span>
+              <span className="text-stone-200">{activeBadgeModal.date}</span>
             </div>
           </div>
         </div>

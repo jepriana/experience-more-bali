@@ -33,7 +33,9 @@ export async function POST(request: Request) {
       familyTags: p.familyTags,
       verifiedFacts: p.verifiedFacts,
       description: p.description,
-      defaultMission: p.defaultMission
+      defaultMission: p.defaultMission,
+      // checked by the KOSSI team (sent by the client from the public directory)
+      kossiVerified: (p as CuratedPartner & { kossiVerified?: boolean }).kossiVerified === true
       // whatsappInquiryNumber / badgeTitle intentionally not sent: the model doesn't need them (fewer tokens)
     }));
 
@@ -60,6 +62,7 @@ CRITICAL GROUNDING INSTRUCTIONS:
 3. For each day, include a Gamified Mission for travelers/kids that inspires curiosity and verified achievements.
 4. Explain clearly *why each partner fits* the traveler's stated preferences and family pace.
 5. Use ONLY partner "id" values from the dataset below. Include one entry in "days" for each day of the trip (${duration}).
+6. Partners with "kossiVerified": true were checked in person by the KOSSI team. When two partners fit about equally well, choose the verified one.
 
 TRAVELER PROFILE:
 - Style / Composition: ${travelerStyle}

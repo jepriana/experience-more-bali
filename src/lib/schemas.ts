@@ -93,3 +93,29 @@ export function makeTripPlanSchema(stopIds: string[], days: number) {
 }
 
 export type TripPlan = z.infer<ReturnType<typeof makeTripPlanSchema>>;
+
+// ───────── Partner: AI support plan (from the "Need help" answers) ─────────
+
+export const SUPPORT_PLAN_CHANNELS = ['website', 'landing', 'gmaps', 'meta', 'tiktok', 'shopee', 'other', 'ai'] as const;
+
+export const SupportPlanSchema = z.object({
+  headline: z.string().describe('One encouraging sentence for the business owner, max 18 words'),
+  actions: z
+    .array(
+      z.object({
+        channel: z
+          .enum(SUPPORT_PLAN_CHANNELS)
+          .describe('Which channel this action improves; "ai" for an AI-help request that is not one channel'),
+        title: z.string().describe('Action title starting with a verb, max 8 words'),
+        why: z.string().describe('Max 20 words: what the business gains'),
+        steps: z.array(z.string().describe('One simple step a non-technical owner can do, max 16 words')).min(2).max(4),
+        effort: z.enum(['quick', 'medium', 'project']).describe('quick = under 1 hour, medium = half a day, project = needs help'),
+        kossiHelp: z.string().describe('Max 18 words: how KOSSI Adventure or its AI tools help with this')
+      })
+    )
+    .min(1)
+    .max(6),
+  firstWeek: z.array(z.string().describe('A concrete task for this week, max 14 words')).min(1).max(3)
+});
+
+export type SupportPlan = z.infer<typeof SupportPlanSchema>;
