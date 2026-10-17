@@ -1,6 +1,9 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
+import Image from 'next/image';
+import { usePathname } from 'next/navigation';
 import {
   Compass,
   Store,
@@ -15,12 +18,22 @@ import { useLanguage } from '@/context/LanguageContext';
 
 export type ActiveTab = 'traveler' | 'partner' | 'phygital';
 
-interface NavbarProps {
-  activeTab: ActiveTab;
-  onTabChange: (tab: ActiveTab) => void;
-}
+/** Each section is its own page now (separate front doors for travelers and partners). */
+const TAB_ROUTES: Record<ActiveTab, string> = {
+  traveler: '/traveler',
+  partner: '/partner',
+  phygital: '/memory'
+};
 
-export function Navbar({ activeTab, onTabChange }: NavbarProps) {
+export function Navbar() {
+  const pathname = usePathname();
+  const activeTab: ActiveTab | null = pathname.startsWith('/traveler')
+    ? 'traveler'
+    : pathname.startsWith('/partner')
+      ? 'partner'
+      : pathname.startsWith('/memory')
+        ? 'phygital'
+        : null;
   const { partners, totalCustomCount } = usePartners();
   const { language, setLanguage, t } = useLanguage();
   const [geminiStatus, setGeminiStatus] = useState<{
@@ -43,11 +56,17 @@ export function Navbar({ activeTab, onTabChange }: NavbarProps) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
           {/* Brand & Subtitle */}
-          <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-700 flex items-center justify-center text-white shadow-lg shadow-emerald-950/40 font-bold text-lg tracking-wider border border-emerald-400/30">
-              EMB
-            </div>
-            <div>
+          <Link href="/" className="flex items-center gap-3 group" aria-label="KOSSI Adventure — Experience More Bali 2027 home">
+            <Image
+              src="/brand/kossi-adventure-logo.jpg"
+              alt="KOSSI Adventure"
+              width={580}
+              height={208}
+              priority
+              unoptimized
+              className="h-11 sm:h-12 w-auto rounded-lg shadow-lg shadow-emerald-950/40 ring-1 ring-amber-900/50 group-hover:scale-[1.03] transition-transform"
+            />
+            <div className="hidden sm:block">
               <div className="flex items-center gap-2">
                 <span className="font-bold text-lg tracking-tight text-white">
                   Experience More Bali <span className="text-emerald-400">2027</span>
@@ -60,7 +79,7 @@ export function Navbar({ activeTab, onTabChange }: NavbarProps) {
                 {t.nav.subTitle}
               </p>
             </div>
-          </div>
+          </Link>
 
           {/* Slogan Pill */}
           <div className="hidden lg:flex items-center gap-2 bg-stone-800/60 border border-stone-700/60 rounded-full px-3.5 py-1 text-xs text-stone-300">
@@ -145,8 +164,9 @@ export function Navbar({ activeTab, onTabChange }: NavbarProps) {
 
         {/* 3 Views Navigation Tabs */}
         <div className="flex border-t border-stone-800/80 pt-2 pb-2 gap-2 overflow-x-auto no-scrollbar">
-          <button
-            onClick={() => onTabChange('traveler')}
+          <Link
+            href={TAB_ROUTES.traveler}
+            aria-current={activeTab === 'traveler' ? 'page' : undefined}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all whitespace-nowrap cursor-pointer ${
               activeTab === 'traveler'
                 ? 'bg-emerald-600 text-white shadow-md shadow-emerald-900/30 ring-1 ring-emerald-400/40'
@@ -164,10 +184,11 @@ export function Navbar({ activeTab, onTabChange }: NavbarProps) {
             >
               {t.nav.tabTravelerSub}
             </span>
-          </button>
+          </Link>
 
-          <button
-            onClick={() => onTabChange('partner')}
+          <Link
+            href={TAB_ROUTES.partner}
+            aria-current={activeTab === 'partner' ? 'page' : undefined}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all whitespace-nowrap cursor-pointer ${
               activeTab === 'partner'
                 ? 'bg-emerald-600 text-white shadow-md shadow-emerald-900/30 ring-1 ring-emerald-400/40'
@@ -185,10 +206,11 @@ export function Navbar({ activeTab, onTabChange }: NavbarProps) {
             >
               {t.nav.tabPartnerSub}
             </span>
-          </button>
+          </Link>
 
-          <button
-            onClick={() => onTabChange('phygital')}
+          <Link
+            href={TAB_ROUTES.phygital}
+            aria-current={activeTab === 'phygital' ? 'page' : undefined}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all whitespace-nowrap cursor-pointer ${
               activeTab === 'phygital'
                 ? 'bg-emerald-600 text-white shadow-md shadow-emerald-900/30 ring-1 ring-emerald-400/40'
@@ -206,7 +228,7 @@ export function Navbar({ activeTab, onTabChange }: NavbarProps) {
             >
               {t.nav.tabPhygitalSub}
             </span>
-          </button>
+          </Link>
         </div>
       </div>
     </header>

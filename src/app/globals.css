@@ -93,7 +93,26 @@ body {
   mask-image: linear-gradient(to bottom, transparent 0, black 28px);
 }
 
+/* Memory sticker "pops" in like it was just slapped on */
+@keyframes sticker-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.6) rotate(-8deg);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.06) rotate(2deg);
+  }
+  100% {
+    transform: scale(1) rotate(0);
+  }
+}
+.sticker-pop {
+  animation: sticker-pop 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .sticker-pop,
   .stream-in,
   .shimmer,
   .thinking-glow,
