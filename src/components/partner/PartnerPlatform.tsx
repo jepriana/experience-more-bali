@@ -293,7 +293,9 @@ export function PartnerPlatform({
       Accommodation:
         'https://images.unsplash.com/photo-1571896349842-33c89424de2d?auto=format&fit=crop&w=1000&q=80',
       Culinary:
-        'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1000&q=80'
+        'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1000&q=80',
+      Activity:
+        'https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=1000&q=80'
     };
 
     const newPartner: CuratedPartner = {
@@ -463,6 +465,7 @@ export function PartnerPlatform({
                 <option value="Destination">{t.partner.categoryDest}</option>
                 <option value="Accommodation">{t.partner.categoryAccom}</option>
                 <option value="Culinary">{t.partner.categoryCul}</option>
+                <option value="Activity">{t.partner.categoryAct}</option>
               </select>
             </div>
 

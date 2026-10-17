@@ -19,6 +19,16 @@ export interface TravelerAccount {
   /** optional city — or the country when homeProvince is INTERNATIONAL */
   homeCity?: string;
   createdAt: string;
+  /**
+   * "Backyard" insight inferred from what they picked in the trip wizard — never asked.
+   * Kept for partner insights (which kinds of visitors are coming).
+   */
+  insights?: {
+    travelerType: string;
+    regions: string[];
+    categories: string[];
+    updatedAt: string;
+  };
 }
 
 export interface PartnerAccount {

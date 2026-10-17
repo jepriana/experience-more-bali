@@ -77,6 +77,7 @@ export interface Translations {
     filterDest: string;
     filterAccom: string;
     filterCul: string;
+    filterAct: string;
     verifiedFactsLabel: string;
     defaultMissionLabel: string;
     btnOpenInPartner: string;
@@ -100,6 +101,7 @@ export interface Translations {
     categoryDest: string;
     categoryAccom: string;
     categoryCul: string;
+    categoryAct: string;
     labelPriceTier: string;
     priceTierAccessible: string;
     priceTierModerate: string;
@@ -246,6 +248,68 @@ export interface Translations {
     close: string;
     memoryObjectLabel: string;
   };
+  trip: {
+    modeWizard: string;
+    modeQuick: string;
+    stepRegions: string;
+    stepCategories: string;
+    stepBasket: string;
+    stepPlan: string;
+    regionsTitle: string;
+    regionsDesc: string;
+    regionsHint: string;
+    selectedCount: string;
+    categoriesTitle: string;
+    categoriesDesc: string;
+    catNature: string;
+    catNatureDesc: string;
+    catActivities: string;
+    catActivitiesDesc: string;
+    catAccommodation: string;
+    catAccommodationDesc: string;
+    catCulinary: string;
+    catCulinaryDesc: string;
+    basketTitle: string;
+    basketDesc: string;
+    add: string;
+    added: string;
+    basketCount: string;
+    nearbyTitle: string;
+    nearbyDesc: string;
+    kmAway: string;
+    emptyBasket: string;
+    sampleListing: string;
+    next: string;
+    back: string;
+    toPlan: string;
+    planTitle: string;
+    planDesc: string;
+    howManyDays: string;
+    dayN: string;
+    arrangeAi: string;
+    arrangeAgain: string;
+    arranging: string;
+    statusGrouping: string;
+    statusDriving: string;
+    statusBalancing: string;
+    statusDay: string;
+    unplanned: string;
+    gridActivity: string;
+    freeDay: string;
+    onTheRoad: string;
+    oneArea: string;
+    warnLong: string;
+    warnRegions: string;
+    warnBoat: string;
+    mapTitle: string;
+    mapAttribution: string;
+    tipsTitle: string;
+    startOver: string;
+    planReady: string;
+    chooseOne: string;
+    regionWord: string;
+    yourTrip: string;
+  };
   stream: {
     liveAi: string;
     offlineDemo: string;
@@ -367,6 +431,7 @@ export const translations: Record<Language, Translations> = {
       filterDest: 'Destination',
       filterAccom: 'Accommodation',
       filterCul: 'Culinary',
+      filterAct: 'Activities',
       verifiedFactsLabel: 'Verified Local Facts (Grounded Data):',
       defaultMissionLabel: 'Default Mission',
       btnOpenInPartner: 'Open in AI Partner Marketing Assistant',
@@ -391,6 +456,7 @@ export const translations: Record<Language, Translations> = {
       categoryDest: 'Destination (Attraction/Nature)',
       categoryAccom: 'Accommodation (Eco-Stays/Lodges)',
       categoryCul: 'Culinary (Warungs/Heritage Kitchens)',
+      categoryAct: 'Activity (Tours/Tubing/Surf/Cycling)',
       labelPriceTier: '3. Price Tier',
       priceTierAccessible: '$ (Accessible / Budget-Friendly)',
       priceTierModerate: '$$ (Moderate / Community Standard)',
@@ -546,6 +612,68 @@ export const translations: Record<Language, Translations> = {
       close: 'Close',
       memoryObjectLabel: 'Your memory sticker'
     },
+    trip: {
+      modeWizard: 'Build my trip',
+      modeQuick: 'Quick AI plan',
+      stepRegions: 'Regions',
+      stepCategories: 'Experiences',
+      stepBasket: 'Basket',
+      stepPlan: 'Plan days',
+      regionsTitle: 'Which parts of Bali do you want to visit?',
+      regionsDesc: 'Tap the map or the cards — pick as many as you like.',
+      regionsHint: 'Not sure? Ubud (Gianyar) and the south (Badung) are easy first picks.',
+      selectedCount: '{n} selected',
+      categoriesTitle: 'What would you like to experience?',
+      categoriesDesc: 'Tap everything that sounds fun.',
+      catNature: 'Natural experiences',
+      catNatureDesc: 'Beaches, mountains, waterfalls, sunrise & sunset',
+      catActivities: 'Activities',
+      catActivitiesDesc: 'River tubing, snorkeling, surfing, cycling…',
+      catAccommodation: 'Places to stay',
+      catAccommodationDesc: 'Homestays, eco-lodges, villas',
+      catCulinary: 'Culinary',
+      catCulinaryDesc: 'Local kitchens, warungs, cooking classes',
+      basketTitle: 'Your adventure basket',
+      basketDesc: 'We already picked these for you. Remove anything you don’t want, or add more.',
+      add: 'Add',
+      added: 'Added',
+      basketCount: '{n} in your basket',
+      nearbyTitle: 'Close by, just across the border',
+      nearbyDesc: 'Not in your regions, but only a short ride away.',
+      kmAway: '{km} km away',
+      emptyBasket: 'Nothing matches yet — go back and try another region or experience.',
+      sampleListing: 'Sample listing',
+      next: 'Next',
+      back: 'Back',
+      toPlan: 'Plan my days',
+      planTitle: 'Plan your days',
+      planDesc: 'Tap a circle to put an experience on a day — or let AI arrange it all for you.',
+      howManyDays: 'How many days?',
+      dayN: 'Day {n}',
+      arrangeAi: 'Arrange my days with AI',
+      arrangeAgain: 'Arrange again with AI',
+      arranging: 'Arranging your days…',
+      statusGrouping: 'Grouping places that are close together…',
+      statusDriving: 'Checking driving times…',
+      statusBalancing: 'Balancing each day…',
+      statusDay: 'Planning day {n}…',
+      unplanned: 'Not on a day yet',
+      gridActivity: 'Experience',
+      freeDay: 'Free day — rest or explore',
+      onTheRoad: '~{time} on the road',
+      oneArea: 'All close together',
+      warnLong: 'Long travel day — consider moving a stop to another day.',
+      warnRegions: 'Crosses {n} regions — expect more time on the road.',
+      warnBoat: 'Includes a boat crossing — plan extra time.',
+      mapTitle: 'Your trip on the map',
+      mapAttribution: 'Region outlines: geoBoundaries (CC BY 4.0). Driving times are estimates.',
+      tipsTitle: 'Good to know',
+      startOver: 'Start over',
+      planReady: 'Your plan is ready',
+      chooseOne: 'Choose at least one to continue.',
+      regionWord: 'Region',
+      yourTrip: 'Your trip'
+    },
     stream: {
       liveAi: 'Live AI',
       offlineDemo: 'Offline demo',
@@ -665,6 +793,7 @@ export const translations: Record<Language, Translations> = {
       filterDest: 'Destinasi',
       filterAccom: 'Akomodasi',
       filterCul: 'Kuliner',
+      filterAct: 'Aktivitas',
       verifiedFactsLabel: 'Fakta Lokal Terverifikasi (Data Kurasi):',
       defaultMissionLabel: 'Misi Utama',
       btnOpenInPartner: 'Buka di Asisten Pemasaran AI Mitra',
@@ -689,6 +818,7 @@ export const translations: Record<Language, Translations> = {
       categoryDest: 'Destinasi (Atraksi/Alam)',
       categoryAccom: 'Akomodasi (Pondok Eko/Lodge)',
       categoryCul: 'Kuliner (Warung/Dapur Leluhur)',
+      categoryAct: 'Aktivitas (Tur/Tubing/Selancar/Bersepeda)',
       labelPriceTier: '3. Kisaran Harga',
       priceTierAccessible: '$ (Terjangkau / Ramah Anggaran)',
       priceTierModerate: '$$ (Menengah / Standar Komunitas)',
@@ -843,6 +973,68 @@ export const translations: Record<Language, Translations> = {
       strategicPartnerOf: 'Mitra Strategis',
       close: 'Tutup',
       memoryObjectLabel: 'Stiker kenangan Anda'
+    },
+    trip: {
+      modeWizard: 'Susun perjalanan saya',
+      modeQuick: 'Rencana AI cepat',
+      stepRegions: 'Wilayah',
+      stepCategories: 'Pengalaman',
+      stepBasket: 'Keranjang',
+      stepPlan: 'Atur hari',
+      regionsTitle: 'Bagian Bali mana yang ingin Anda kunjungi?',
+      regionsDesc: 'Ketuk peta atau kartu — pilih sebanyak yang Anda mau.',
+      regionsHint: 'Belum yakin? Ubud (Gianyar) dan selatan (Badung) pilihan awal yang mudah.',
+      selectedCount: '{n} dipilih',
+      categoriesTitle: 'Pengalaman apa yang ingin Anda rasakan?',
+      categoriesDesc: 'Ketuk semua yang terdengar seru.',
+      catNature: 'Pengalaman alam',
+      catNatureDesc: 'Pantai, gunung, air terjun, matahari terbit & terbenam',
+      catActivities: 'Aktivitas',
+      catActivitiesDesc: 'Tubing sungai, snorkeling, selancar, bersepeda…',
+      catAccommodation: 'Tempat menginap',
+      catAccommodationDesc: 'Homestay, eco-lodge, vila',
+      catCulinary: 'Kuliner',
+      catCulinaryDesc: 'Dapur lokal, warung, kelas memasak',
+      basketTitle: 'Keranjang petualangan Anda',
+      basketDesc: 'Kami sudah memilihkan ini. Hapus yang tidak Anda inginkan, atau tambahkan lagi.',
+      add: 'Tambah',
+      added: 'Ditambahkan',
+      basketCount: '{n} di keranjang Anda',
+      nearbyTitle: 'Dekat, tepat di seberang perbatasan',
+      nearbyDesc: 'Bukan di wilayah pilihan Anda, tapi hanya sebentar perjalanan.',
+      kmAway: '{km} km',
+      emptyBasket: 'Belum ada yang cocok — kembali dan coba wilayah atau pengalaman lain.',
+      sampleListing: 'Contoh listing',
+      next: 'Lanjut',
+      back: 'Kembali',
+      toPlan: 'Atur hari saya',
+      planTitle: 'Atur hari Anda',
+      planDesc: 'Ketuk lingkaran untuk menaruh pengalaman di suatu hari — atau biarkan AI mengatur semuanya.',
+      howManyDays: 'Berapa hari?',
+      dayN: 'Hari {n}',
+      arrangeAi: 'Atur hari saya dengan AI',
+      arrangeAgain: 'Atur ulang dengan AI',
+      arranging: 'Mengatur hari Anda…',
+      statusGrouping: 'Mengelompokkan tempat yang berdekatan…',
+      statusDriving: 'Memeriksa waktu tempuh…',
+      statusBalancing: 'Menyeimbangkan setiap hari…',
+      statusDay: 'Merencanakan hari ke-{n}…',
+      unplanned: 'Belum ada di hari mana pun',
+      gridActivity: 'Pengalaman',
+      freeDay: 'Hari bebas — istirahat atau jelajah',
+      onTheRoad: '~{time} di perjalanan',
+      oneArea: 'Semua berdekatan',
+      warnLong: 'Hari perjalanan panjang — pertimbangkan memindahkan satu tempat ke hari lain.',
+      warnRegions: 'Melintasi {n} wilayah — perjalanan akan lebih lama.',
+      warnBoat: 'Termasuk penyeberangan perahu — sediakan waktu ekstra.',
+      mapTitle: 'Perjalanan Anda di peta',
+      mapAttribution: 'Batas wilayah: geoBoundaries (CC BY 4.0). Waktu tempuh adalah perkiraan.',
+      tipsTitle: 'Perlu diketahui',
+      startOver: 'Mulai ulang',
+      planReady: 'Rencana Anda siap',
+      chooseOne: 'Pilih setidaknya satu untuk melanjutkan.',
+      regionWord: 'Wilayah',
+      yourTrip: 'Perjalanan Anda'
     },
     stream: {
       liveAi: 'AI Langsung',

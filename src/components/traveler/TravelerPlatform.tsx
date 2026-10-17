@@ -575,7 +575,8 @@ export function TravelerPlatform({ onSelectPartnerForPartnerView }: TravelerPlat
                   { id: 'All', label: t.traveler.filterAll },
                   { id: 'Destination', label: t.traveler.filterDest },
                   { id: 'Accommodation', label: t.traveler.filterAccom },
-                  { id: 'Culinary', label: t.traveler.filterCul }
+                  { id: 'Culinary', label: t.traveler.filterCul },
+                  { id: 'Activity', label: t.traveler.filterAct }
                 ] as const
               ).map((cat) => (
                 <button
@@ -603,6 +604,8 @@ export function TravelerPlatform({ onSelectPartnerForPartnerView }: TravelerPlat
                 ? 'bg-emerald-950 text-emerald-300 border-emerald-800'
                 : partner.category === 'Accommodation'
                 ? 'bg-indigo-950 text-indigo-300 border-indigo-800'
+                : partner.category === 'Activity'
+                ? 'bg-sky-950 text-sky-300 border-sky-800'
                 : 'bg-amber-950 text-amber-300 border-amber-800';
 
             return (
