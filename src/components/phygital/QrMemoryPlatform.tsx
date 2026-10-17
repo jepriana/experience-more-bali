@@ -3,32 +3,33 @@
 import React, { useState } from 'react';
 import {
   QrCode,
-  Sparkles,
   Smartphone,
   Award,
-  Calendar,
-  MapPin,
   CheckCircle2,
   Share2,
   Camera,
   Layers,
   Heart,
-  ExternalLink,
   ShieldCheck,
-  RefreshCw,
-  Clock,
   Compass,
   Check,
   X,
   Download,
-  Copy,
-  ChevronRight,
-  Maximize2
+  Copy
 } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { useSessionState } from '@/context/SessionStateContext';
 
 type MockupType = 'tshirt' | 'patch';
+
+interface UnlockedBadge {
+  id: string;
+  title: string;
+  icon: string;
+  partner: string;
+  date: string;
+  description: string;
+}
 
 export function QrMemoryPlatform() {
   const { language, t } = useLanguage();
@@ -36,7 +37,7 @@ export function QrMemoryPlatform() {
   const [isScanning, setIsScanning] = useState(false);
   const [scanMessage, setScanMessage] = useState<string | null>(null);
   const [mobileGlow, setMobileGlow] = useState(false);
-  const [activeBadgeModal, setActiveBadgeModal] = useState<any | null>(null);
+  const [activeBadgeModal, setActiveBadgeModal] = useState<UnlockedBadge | null>(null);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
   const [storyLikes, setStoryLikes] = useSessionState<{ [key: string]: number }>('memory.storyLikes', {

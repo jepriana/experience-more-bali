@@ -3,9 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
   CuratedPartner,
-  PartnerCategory,
-  CURATED_BALI_PARTNERS,
-  createWhatsAppInquiryUrl
+  PartnerCategory
 } from '@/data/curatedPartners';
 import { usePartners } from '@/context/PartnersContext';
 import { useSessionState } from '@/context/SessionStateContext';
@@ -24,15 +22,8 @@ import {
   Check,
   Award,
   Globe,
-  MessageCircle,
-  Share2,
   CheckCircle2,
-  ArrowRight,
-  ExternalLink,
-  Info,
-  RefreshCw,
-  Layers,
-  Send
+  ArrowRight
 } from 'lucide-react';
 
 interface PartnerPlatformProps {
@@ -47,7 +38,7 @@ export function PartnerPlatform({
   onNavigateToTraveler,
   onInitialPartnerApplied
 }: PartnerPlatformProps) {
-  const { partners, addPartner, isCustomPartner, totalCustomCount } = usePartners();
+  const { partners, addPartner } = usePartners();
   const { language, t } = useLanguage();
 
   // Form Inputs
@@ -375,7 +366,7 @@ export function PartnerPlatform({
             </div>
             <div>
               <h3 className="text-base font-bold text-white">
-                "{lastPublishedPartner.name}" {t.partner.publishedSuccessTitle}
+                &ldquo;{lastPublishedPartner.name}&rdquo; {t.partner.publishedSuccessTitle}
               </h3>
               <p className="text-xs text-emerald-200/90 mt-0.5">
                 {t.partner.publishedSuccessDesc} ({partners.length} {t.nav.partnersActive})
@@ -481,7 +472,7 @@ export function PartnerPlatform({
               </label>
               <select
                 value={priceTier}
-                onChange={(e) => setPriceTier(e.target.value as any)}
+                onChange={(e) => setPriceTier(e.target.value as '$' | '$$' | '$$$' | '$$$$')}
                 className="w-full bg-stone-800 border border-stone-700 text-stone-100 rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500"
               >
                 <option value="$">{t.partner.priceTierAccessible}</option>
