@@ -93,3 +93,20 @@ export function siteOrigin(): string {
 export function memoryUrl(memory: Memory): string {
   return `${siteOrigin()}/m/${encodeMemory(memory)}`;
 }
+
+/** Short link of a trip saved on the server (photos & videos live there). */
+export function tripUrl(tripId: string): string {
+  return `${siteOrigin()}/m/${tripId}`;
+}
+
+export const isTripId = (code: string) => /^t_[\w-]{6,30}$/.test(code);
+
+/** /tag/<id>.<token> — a destination QR tag (summit, trailhead, dive spot…) */
+export function tagUrl(tagId: string, token: string): string {
+  return `${siteOrigin()}/tag/${tagId}.${token}`;
+}
+
+export function parseTagCode(code: string): { id: string; token: string } | null {
+  const m = /^(tg_[\w-]{4,20})\.([\w-]{6,40})$/.exec(code);
+  return m ? { id: m[1], token: m[2] } : null;
+}

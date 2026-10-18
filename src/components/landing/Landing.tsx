@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { QrCode } from 'lucide-react';
+import { QrCode, Users } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { StickerCanvas } from '@/components/onboarding/StickerCanvas';
 import { useAccountSticker } from '@/components/onboarding/AccountSticker';
@@ -68,10 +68,14 @@ export function Landing() {
         />
       </section>
 
-      <p className="py-10 border-t border-stone-800 text-sm text-stone-500">
+      <p className="py-10 border-t border-stone-800 text-sm text-stone-500 flex flex-wrap gap-x-8 gap-y-3">
         <Link href="/memory" className="inline-flex items-center gap-2 font-semibold text-emerald-400 underline underline-offset-4 decoration-emerald-800 hover:decoration-emerald-400">
           <QrCode className="w-4 h-4" aria-hidden="true" />
           {t.landing.memoryLink}
+        </Link>
+        <Link href="/connect" className="inline-flex items-center gap-2 font-semibold text-emerald-400 underline underline-offset-4 decoration-emerald-800 hover:decoration-emerald-400">
+          <Users className="w-4 h-4" aria-hidden="true" />
+          {t.eco.next.connect.title}: {t.eco.next.connect.desc}
         </Link>
       </p>
     </div>

@@ -32,6 +32,8 @@ export interface CuratedPartner {
   requiresBoat?: boolean;
   /** illustrative listing added for the demo, not a signed-up partner */
   isSample?: boolean;
+  /** KOSSI partner type (one of the 10 groups' types) — set for listings published in the app */
+  partnerType?: string;
 }
 
 export const CURATED_BALI_PARTNERS: CuratedPartner[] = [

@@ -40,6 +40,8 @@ export function useTrip() {
   const [days, setDaysRaw] = useSessionState<number>('trip.days', 3);
   const [assignment, setAssignment] = useSessionState<Record<string, number>>('trip.assignment', {});
   const [plan, setPlan] = useSessionState<TripPlanMeta | null>('trip.plan', null);
+  /** id of this trip on the server (its memory page /m/t_… with photos & videos) */
+  const [serverTripId, setServerTripId] = useSessionState<string | null>('trip.serverId', null);
 
   /** Partners in the chosen regions offering a chosen experience. */
   const matches = useMemo(
@@ -58,6 +60,8 @@ export function useTrip() {
   const toggleRegion = useCallback((id: BaliRegionId) => setRegions((r) => toggle(r, id)), [setRegions]);
   const toggleCategory = useCallback((c: TravelCategory) => setCategories((cs) => toggle(cs, c)), [setCategories]);
   const toggleBasket = useCallback((id: string) => setBasket((b) => toggle(b, id)), [setBasket]);
+  /** add several partners at once (an area cluster) */
+  const addToBasket = useCallback((ids: string[]) => setBasket((b) => [...b, ...ids.filter((id) => !b.includes(id))]), [setBasket]);
 
   /** Step 2 → 3: fill the basket with every match (least thinking) — only if the picks changed. */
   const goToBasket = () => {
@@ -101,6 +105,7 @@ export function useTrip() {
     setBasketSig('');
     setAssignment({});
     setPlan(null);
+    setServerTripId(null); // a new trip gets its own memory page
     setStep(0);
   };
 
@@ -116,6 +121,7 @@ export function useTrip() {
     basket,
     basketPartners,
     toggleBasket,
+    addToBasket,
     stops,
     days,
     setDays,
@@ -126,7 +132,9 @@ export function useTrip() {
     setPlan,
     goToBasket,
     goToPlan,
-    startOver
+    startOver,
+    serverTripId,
+    setServerTripId
   };
 }
 

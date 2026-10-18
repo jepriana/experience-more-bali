@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { listAll, publishPartner } from '@/lib/server/partnerStore';
 import { toPublic, type PublicStatus } from '@/lib/verification';
 import { BALI_REGIONS } from '@/data/regions';
+import { PARTNER_TYPES } from '@/data/partnerGroups';
 import type { CuratedPartner } from '@/data/curatedPartners';
 
 /**
@@ -39,6 +40,7 @@ const PartnerSchema = z.object({
   isNewlyPublished: z.boolean().optional(),
   regionId: z.enum(BALI_REGIONS.map((r) => r.id) as [string, ...string[]]).optional(),
   area: text(60).optional(),
+  partnerType: z.enum(PARTNER_TYPES.map((t) => t.id) as [string, ...string[]]).optional(),
   coords: z.object({ lat: z.number().min(-9.2).max(-7.8), lng: z.number().min(114.3).max(115.8) }).optional()
 });
 

@@ -1,4 +1,5 @@
 import { verificationStrings, type VerifyStrings } from '@/i18n/verification';
+import { ecosystemStrings, type EcoStrings } from '@/i18n/ecosystem';
 import { stage3Strings, type MemoryPageStrings, type MerchStrings, type ProfileStrings } from '@/i18n/stage3';
 
 export type Language = 'en' | 'id';
@@ -353,6 +354,7 @@ export interface Translations {
   merch: MerchStrings;
   memoryPage: MemoryPageStrings;
   verify: VerifyStrings;
+  eco: EcoStrings;
 }
 
 export const translations: Record<Language, Translations> = {
@@ -566,7 +568,7 @@ export const translations: Record<Language, Translations> = {
       partnerDoorDesc: 'Destination, stay, culinary or activity in Bali? Join to reach the right travelers, get AI support and your partner sticker.',
       partnerDoorCta: 'Join as a partner',
       continueAs: 'Continue as {name}',
-      memoryLink: 'See memory objects: QR T-shirts & patches',
+      memoryLink: 'My memories: trip pages, photos, videos & credentials',
       sampleTravelerName: 'The Explorer Family',
       samplePartnerName: 'Desa Wisata Penarungan'
     },
@@ -718,7 +720,8 @@ export const translations: Record<Language, Translations> = {
       poweredBy: 'Powered by Google Gen AI SDK'
     },
     ...stage3Strings.en,
-    verify: verificationStrings.en
+    verify: verificationStrings.en,
+    eco: ecosystemStrings.en
   },
   id: {
     nav: {
@@ -930,7 +933,7 @@ export const translations: Record<Language, Translations> = {
       partnerDoorDesc: 'Destinasi, penginapan, kuliner, atau aktivitas di Bali? Bergabunglah untuk menjangkau wisatawan yang tepat, dapatkan dukungan AI dan stiker mitra Anda.',
       partnerDoorCta: 'Bergabung sebagai mitra',
       continueAs: 'Lanjut sebagai {name}',
-      memoryLink: 'Lihat objek kenangan: kaos & patch QR',
+      memoryLink: 'Kenangan saya: halaman trip, foto, video & kredensial',
       sampleTravelerName: 'Keluarga Penjelajah',
       samplePartnerName: 'Desa Wisata Penarungan'
     },
@@ -1082,6 +1085,7 @@ export const translations: Record<Language, Translations> = {
       poweredBy: 'Didukung oleh Google Gen AI SDK'
     },
     ...stage3Strings.id,
-    verify: verificationStrings.id
+    verify: verificationStrings.id,
+    eco: ecosystemStrings.id
   }
 };
