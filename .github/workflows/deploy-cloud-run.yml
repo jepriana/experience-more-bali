@@ -28,6 +28,12 @@ jobs:
       - name: Checkout Source Code
         uses: actions/checkout@v7
 
+      # Generate .env.local file 
+      - name: Generate .env.local file
+        run: |
+          echo "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}" >> .env.local
+          echo "ADMIN_PASSCODE=${{ secrets.ADMIN_PASSCODE }}" >> .env.local
+
       # ------------------------------------------------------------------------
       # Step 1: Authenticate to Google Cloud
       # Supports Workload Identity Federation (recommended) or Service Account Key
