@@ -46,3 +46,5 @@ next-env.d.ts
 
 # partner directory + verification records (server file store)
 /.data/
+
+personal-iwj-d6496bf14145.json
