@@ -78,8 +78,8 @@ export async function downloadPrintSheet(sticker: StickerContent, order: PrintOr
   await downloadCanvas(canvas, `kossi-print-${slugify(sticker.title)}.png`);
 }
 
-/** Portrait counter card (A6 at 300 dpi): sticker, QR and a call to scan. */
-export async function downloadCounterCard(sticker: StickerContent, qrUrl: string, scanText: string, offerText?: string) {
+/** Portrait counter card / destination tag (A6 at 300 dpi): sticker, QR and a call to scan. */
+export async function downloadCounterCard(sticker: StickerContent, qrUrl: string, scanText: string, offerText?: string, fileName?: string) {
   const W = 1240;
   const H = 1748;
   const canvas = document.createElement('canvas');
@@ -115,5 +115,5 @@ export async function downloadCounterCard(sticker: StickerContent, qrUrl: string
     ctx.fillText(offerText, W / 2, qy + side + 130, W - 120);
   }
 
-  await downloadCanvas(canvas, `kossi-counter-card-${slugify(sticker.title)}.png`);
+  await downloadCanvas(canvas, fileName ?? `kossi-counter-card-${slugify(sticker.title)}.png`);
 }

@@ -13,13 +13,17 @@ import { BusinessProfile } from '@/components/partner/BusinessProfile';
 import { PartnerGear } from '@/components/partner/PartnerGear';
 import { ListingStatus } from '@/components/verification/ListingStatus';
 import { useLanguage } from '@/context/LanguageContext';
-import { ClipboardList, Shirt, Wand2 } from 'lucide-react';
+import { ArrowRight, ClipboardList, Network, QrCode, Shirt, Wand2 } from 'lucide-react';
+import { PartnerTags } from '@/components/partner/PartnerTags';
+import { PartnerNetwork } from '@/components/partner/PartnerNetwork';
+import { readNext } from '@/lib/nextPath';
 
-type PartnerTab = 'profile' | 'studio' | 'gear';
+type PartnerTab = 'profile' | 'studio' | 'network' | 'gear' | 'tags';
 
 /**
  * /partner — sign up once (partner sticker is created), then three tabs:
- * business profile (tap menus A–E + AI support plan), the AI marketing studio, and memory gear.
+ * business profile (tap menus A–E + AI support plan), the AI marketing studio, the partner
+ * network (clusters, collaboration requests, directory) and memory gear.
  */
 export function PartnerPage() {
   const router = useRouter();
@@ -57,7 +61,29 @@ export function PartnerPage() {
       />
     );
   }
-  if (justCreated) return <StickerReveal kind="partner" onContinue={() => setJustCreated(false)} />;
+  if (justCreated) {
+    const next = readNext();
+    return (
+      <StickerReveal
+        kind="partner"
+        continueLabel={next ? t.eco.next.continueBack : undefined}
+        onContinue={() => (next ? router.push(next) : setJustCreated(false))}
+      />
+    );
+  }
+
+  const tabs = [
+    ['profile', t.profile.tabProfile, ClipboardList],
+    ['studio', t.profile.tabStudio, Wand2],
+    ['network', t.eco.network.tab, Network],
+    ['gear', t.profile.tabGear, Shirt],
+    ['tags', t.eco.tags.tab, QrCode]
+  ] as const;
+  const nextTab = tabs[tabs.findIndex(([id]) => id === activeTab) + 1];
+  const goTo = (id: PartnerTab) => {
+    setTab(id);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   return (
     <>
@@ -66,13 +92,7 @@ export function PartnerPage() {
         <AccountStrip kind="partner" />
         <ListingStatus />
         <div className="flex gap-2 overflow-x-auto no-scrollbar" role="tablist" aria-label="Partner tools">
-          {(
-            [
-              ['profile', t.profile.tabProfile, ClipboardList],
-              ['studio', t.profile.tabStudio, Wand2],
-              ['gear', t.profile.tabGear, Shirt]
-            ] as const
-          ).map(([id, label, Icon]) => {
+          {tabs.map(([id, label, Icon]) => {
             const on = activeTab === id;
             return (
               <button
@@ -88,7 +108,7 @@ export function PartnerPage() {
                     : 'bg-stone-900 border-stone-800 text-stone-300 hover:border-stone-600'
                 }`}
               >
-                <Icon className="w-4 h-4" />
+                <Icon className="w-4 h-4" aria-hidden="true" />
                 {label}
               </button>
             );
@@ -107,9 +127,32 @@ export function PartnerPage() {
           onNavigateToTraveler={() => router.push('/traveler')}
         />
       )}
+      {activeTab === 'network' && (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <PartnerNetwork />
+        </div>
+      )}
       {activeTab === 'gear' && (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <PartnerGear />
+        </div>
+      )}
+      {activeTab === 'tags' && (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <PartnerTags />
+        </div>
+      )}
+      {/* every tab ends with the next one, so partners are never left at a dead end */}
+      {nextTab && (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10 flex justify-end">
+          <button
+            type="button"
+            onClick={() => goTo(nextTab[0])}
+            className="px-5 py-3 rounded-xl text-sm font-bold border border-emerald-600 text-emerald-300 hover:bg-emerald-950 flex items-center gap-2 cursor-pointer"
+          >
+            {t.eco.next.partnerNext.replace('{tab}', nextTab[1])}
+            <ArrowRight className="w-4 h-4" aria-hidden="true" />
+          </button>
         </div>
       )}
     </>

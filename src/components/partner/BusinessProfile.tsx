@@ -1,46 +1,27 @@
 'use client';
 
 import React, { useState } from 'react';
-import {
-  BedDouble,
-  Bike,
-  Car,
-  Check,
-  CheckCircle2,
-  MapPin,
-  Plus,
-  ShoppingBag,
-  UtensilsCrossed,
-  X,
-  type LucideIcon
-} from 'lucide-react';
+import { Check, CheckCircle2, Plus, X } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { useAccounts } from '@/lib/accounts';
 import { fill } from '@/i18n/stage3';
 import {
   AI_SUPPORT_OPTIONS,
-  BUSINESS_SUBTYPES,
   DIGITAL_CHANNELS,
   DIGITAL_STATUSES,
   DISCOUNT_OPTIONS,
   EMPTY_PROFILE,
   FACILITIES,
-  PRODUCT_SUGGESTIONS,
+  normalizePartnerType,
+  productsFor,
   profileCompleteness,
-  type BusinessType,
+  subtypesFor,
   type DigitalStatus,
   type PartnerBusinessProfile
 } from '@/data/partnerProfile';
 import { SupportPlanPanel } from '@/components/partner/SupportPlanPanel';
+import { PartnerTypePicker } from '@/components/partner/PartnerTypePicker';
 
-const TYPE_ICONS: Record<BusinessType, LucideIcon> = {
-  Destination: MapPin,
-  Accommodation: BedDouble,
-  Culinary: UtensilsCrossed,
-  Activity: Bike,
-  LocalProducts: ShoppingBag,
-  Transport: Car
-};
 
 const STATUS_STYLE: Record<DigitalStatus, string> = {
   managed: 'bg-emerald-600 border-emerald-500 text-white',
@@ -59,15 +40,17 @@ export function BusinessProfile() {
   const [custom, setCustom] = useState('');
   if (!partner) return null;
 
-  const profile: PartnerBusinessProfile = { ...EMPTY_PROFILE, ...partner.profile };
+  const stored = { ...EMPTY_PROFILE, ...partner.profile };
+  // types saved before the 10 KOSSI groups existed are mapped to the new ones
+  const profile: PartnerBusinessProfile = { ...stored, type: normalizePartnerType(stored.type) };
   const update = (patch: Partial<PartnerBusinessProfile>) =>
     savePartner({ ...partner, profile: { ...profile, ...patch } });
   const toggle = (list: string[], item: string) => (list.includes(item) ? list.filter((x) => x !== item) : [...list, item]);
 
   const done = profileCompleteness(profile);
   const productChoices = [
-    ...(profile.type ? PRODUCT_SUGGESTIONS[profile.type] : []),
-    ...profile.products.filter((x) => !profile.type || !PRODUCT_SUGGESTIONS[profile.type].includes(x))
+    ...productsFor(profile.type),
+    ...profile.products.filter((x) => !productsFor(profile.type).includes(x))
   ];
 
   const addCustom = () => {
@@ -100,35 +83,11 @@ export function BusinessProfile() {
         </div>
       </div>
 
-      {/* A. Business type */}
+      {/* A. Business type — the KOSSI partner groups */}
       <Section letter="A" title={p.secA} desc={p.secADesc} done={!!profile.type}>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
-          {(Object.keys(TYPE_ICONS) as BusinessType[]).map((type) => {
-            const Icon = TYPE_ICONS[type];
-            const on = profile.type === type;
-            return (
-              <button
-                key={type}
-                onClick={() => update({ type, subtypes: on ? profile.subtypes : [] })}
-                aria-pressed={on}
-                className={`p-3 rounded-xl border text-sm font-semibold flex flex-col items-center gap-2 transition-all cursor-pointer ${
-                  on
-                    ? 'bg-emerald-950/70 border-emerald-500 text-emerald-200 shadow-lg'
-                    : 'bg-stone-950 border-stone-800 text-stone-300 hover:border-stone-600'
-                }`}
-              >
-                <Icon className="w-5 h-5" />
-                {p.types[type]}
-              </button>
-            );
-          })}
-        </div>
+        <PartnerTypePicker value={profile.type} onChange={(type) => update({ type, subtypes: type === profile.type ? profile.subtypes : [] })} />
         {profile.type && (
-          <Chips
-            items={BUSINESS_SUBTYPES[profile.type]}
-            selected={profile.subtypes}
-            onToggle={(x) => update({ subtypes: toggle(profile.subtypes, x) })}
-          />
+          <Chips items={subtypesFor(profile.type)} selected={profile.subtypes} onToggle={(x) => update({ subtypes: toggle(profile.subtypes, x) })} />
         )}
         <div className="pt-1">
           <div className="text-xs text-stone-500 font-bold mb-2">{p.secAFacilities}</div>

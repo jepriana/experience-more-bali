@@ -30,6 +30,9 @@ export interface TravelerAccount {
     categories: string[];
     updatedAt: string;
   };
+  /** device identity for server features (trips, photos, check-ins, Connect) */
+  serverId?: string;
+  serverKey?: string;
 }
 
 export interface PartnerAccount {
@@ -45,6 +48,11 @@ export interface PartnerAccount {
   profile?: PartnerBusinessProfile;
   /** id of the listing they published from the AI marketing studio (for its verification status) */
   publishedPartnerId?: string;
+  /** device identity in the partner network (clusters, requests, check-ins) */
+  memberId?: string;
+  memberKey?: string;
+  /** printed into the counter-card QR so travelers can check in */
+  checkinToken?: string;
 }
 
 interface Accounts {
@@ -91,6 +99,22 @@ function subscribe(listener: () => void) {
     listeners.delete(listener);
     window.removeEventListener('storage', onStorage);
   };
+}
+
+/** Current accounts outside React (e.g. inside async helpers). */
+export function readAccounts(): { traveler: TravelerAccount | null; partner: PartnerAccount | null } {
+  const a = read();
+  return { traveler: a.traveler ?? null, partner: a.partner ?? null };
+}
+
+/** Merge fields into the saved traveler / partner account (no-op if not signed up). */
+export function patchTraveler(patch: Partial<TravelerAccount>) {
+  const a = read();
+  if (a.traveler) write({ ...a, traveler: { ...a.traveler, ...patch } });
+}
+export function patchPartner(patch: Partial<PartnerAccount>) {
+  const a = read();
+  if (a.partner) write({ ...a, partner: { ...a.partner, ...patch } });
 }
 
 export function useAccounts() {

@@ -7,6 +7,9 @@ import { useAccounts, partnerRegionLabel, type PartnerAccount } from '@/lib/acco
 import { BALI_REGIONS, getBaliRegion, type BaliRegionId } from '@/data/regions';
 import { StickerCanvas } from '@/components/onboarding/StickerCanvas';
 import { Field, inputClass, isValidContact } from '@/components/onboarding/SignupFields';
+import { PartnerTypePicker } from '@/components/partner/PartnerTypePicker';
+import { getPartnerType, type PartnerTypeId } from '@/data/partnerGroups';
+import { EMPTY_PROFILE } from '@/data/partnerProfile';
 
 /** First visit as a partner: 4 quick answers (region by tapping), partner sticker drawn live. */
 export function PartnerSignup({ onCreated }: { onCreated: (account: PartnerAccount) => void }) {
@@ -18,6 +21,7 @@ export function PartnerSignup({ onCreated }: { onCreated: (account: PartnerAccou
   const [contact, setContact] = useState('');
   const [regionId, setRegionId] = useState<BaliRegionId | ''>('');
   const [area, setArea] = useState('');
+  const [partnerType, setPartnerType] = useState<PartnerTypeId | undefined>(undefined);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const region = getBaliRegion(regionId);
@@ -35,6 +39,7 @@ export function PartnerSignup({ onCreated }: { onCreated: (account: PartnerAccou
     if (!businessName.trim()) next.business = t.signup.errBusiness;
     if (!isValidContact(contact)) next.contact = t.signup.errContact;
     if (!regionId) next.region = t.signup.errRegion;
+    if (!partnerType) next.type = t.eco.types.err;
     setErrors(next);
     if (Object.keys(next).length > 0 || !regionId) return;
 
@@ -44,7 +49,8 @@ export function PartnerSignup({ onCreated }: { onCreated: (account: PartnerAccou
       contact: contact.trim(),
       regionId,
       area: area || undefined,
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+      profile: { ...EMPTY_PROFILE, type: partnerType }
     };
     savePartner(account);
     onCreated(account);
@@ -118,6 +124,23 @@ export function PartnerSignup({ onCreated }: { onCreated: (account: PartnerAccou
               className={inputClass}
             />
           </Field>
+
+          {/* Partner type: the KOSSI network groups */}
+          <div className="space-y-1.5">
+            <div id="pa-type-label" className="text-sm font-semibold text-stone-200">
+              {t.eco.types.label}
+            </div>
+            <p className="text-xs text-stone-500">{t.eco.types.hint}</p>
+            <PartnerTypePicker value={partnerType} onChange={setPartnerType} labelledBy="pa-type-label" />
+            {partnerType && !getPartnerType(partnerType)?.travelerFacing && (
+              <p className="text-xs text-amber-300">{t.eco.types.notTravelerFacing}</p>
+            )}
+            {errors.type && (
+              <p className="text-sm text-red-400 font-semibold" role="alert">
+                {errors.type}
+              </p>
+            )}
+          </div>
 
           {/* Region: tap a card instead of typing */}
           <Field label={t.signup.labelBaliRegion} error={errors.region}>

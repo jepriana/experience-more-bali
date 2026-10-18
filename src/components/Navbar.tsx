@@ -8,17 +8,18 @@ import { Moon, Sun } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { useTheme } from "@/lib/theme";
 
-export type ActiveTab = "traveler" | "partner" | "phygital";
+export type ActiveTab = "traveler" | "memories" | "connect" | "partner";
 
 /** Each section is its own page (separate front doors for travelers and partners). */
 const TAB_ROUTES: Record<ActiveTab, string> = {
   traveler: "/traveler",
+  memories: "/memory",
+  connect: "/connect",
   partner: "/partner",
-  phygital: "/memory",
 };
 
 /**
- * One quiet bar: brand, the three sections, language. Status details (AI, partner count)
+ * One quiet bar: brand, the sections, theme and language. Status details (AI, partner count)
  * live in the footer so the header only helps people move around.
  */
 export function Navbar() {
@@ -29,14 +30,17 @@ export function Navbar() {
     ? "traveler"
     : pathname.startsWith("/partner")
       ? "partner"
-      : pathname.startsWith("/memory")
-        ? "phygital"
-        : null;
+      : pathname.startsWith("/memory") || pathname.startsWith("/m/")
+        ? "memories"
+        : pathname.startsWith("/connect")
+          ? "connect"
+          : null;
 
   const links: { id: ActiveTab; label: string }[] = [
     { id: "traveler", label: t.nav.tabTraveler },
+    { id: "memories", label: t.eco.nav.memories },
+    { id: "connect", label: t.eco.nav.connect },
     { id: "partner", label: t.nav.tabPartner },
-    { id: "phygital", label: t.nav.tabPhygital },
   ];
 
   return (

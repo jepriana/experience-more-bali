@@ -7,6 +7,7 @@ import { usePartners } from '@/context/PartnersContext';
 import { getBaliRegion } from '@/data/regions';
 import type { CuratedPartner } from '@/data/curatedPartners';
 import { partnerRegionId } from '@/lib/tripPlanning';
+import { partnerTypeLabel } from '@/data/partnerGroups';
 import {
   CHECK_IDS,
   VERIFICATION_STATUSES,
@@ -338,7 +339,7 @@ export function AdminPage() {
                       {r.status === 'verified' && <BadgeCheck className="w-4 h-4 text-emerald-400 shrink-0" aria-hidden="true" />}
                     </span>
                     <span className="text-xs text-stone-400">
-                      {p.category} · {p.area ? `${p.area}, ` : ''}
+                      {partnerTypeLabel(p.partnerType, language) || p.category} · {p.area ? `${p.area}, ` : ''}
                       {region?.name ?? p.location}
                       {builtIn ? ` · ${p.isSample ? v.adminSample : v.adminBuiltIn}` : ` · ${v.adminNew}`}
                     </span>

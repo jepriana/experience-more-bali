@@ -12,6 +12,7 @@ import { PageLoading } from '@/components/pages/PageLoading';
 import { TripWizard } from '@/components/trip/TripWizard';
 import { useLanguage } from '@/context/LanguageContext';
 import { Map as MapIcon, Sparkles } from 'lucide-react';
+import { readNext } from '@/lib/nextPath';
 
 /** /traveler — sign up once (sticker is created), then plan the trip. */
 export function TravelerPage() {
@@ -26,7 +27,17 @@ export function TravelerPage() {
 
   if (!hydrated) return <PageLoading />;
   if (!traveler) return <TravelerSignup onCreated={() => setJustCreated(true)} />;
-  if (justCreated) return <StickerReveal kind="traveler" onContinue={() => setJustCreated(false)} />;
+  if (justCreated) {
+    // came from a page that needed an account (check-in, QR tag, Connect…) → go back there
+    const next = readNext();
+    return (
+      <StickerReveal
+        kind="traveler"
+        continueLabel={next ? t.eco.next.continueBack : undefined}
+        onContinue={() => (next ? router.push(next) : setJustCreated(false))}
+      />
+    );
+  }
 
   return (
     <>
@@ -36,8 +47,8 @@ export function TravelerPage() {
         <div className="inline-flex items-center bg-stone-900 border border-stone-800 rounded-xl p-1 gap-1" role="tablist">
           {(
             [
-              ['wizard', t.trip.modeWizard, <MapIcon key="m" className="w-4 h-4" />],
-              ['quick', t.trip.modeQuick, <Sparkles key="s" className="w-4 h-4" />]
+              ['wizard', t.trip.modeWizard, <MapIcon key="m" className="w-4 h-4" aria-hidden="true" />],
+              ['quick', t.trip.modeQuick, <Sparkles key="s" className="w-4 h-4" aria-hidden="true" />]
             ] as const
           ).map(([id, label, icon]) => (
             <button
@@ -60,12 +71,31 @@ export function TravelerPage() {
       {mode === 'wizard' ? (
         <TripWizard />
       ) : (
-        <TravelerPlatform
-          onSelectPartnerForPartnerView={(partnerId) => {
-            setPartnerFocus(partnerId);
-            router.push('/partner');
-          }}
-        />
+        <>
+          <TravelerPlatform
+            onSelectPartnerForPartnerView={(partnerId) => {
+              setPartnerFocus(partnerId);
+              router.push('/partner');
+            }}
+          />
+          {/* the quick plan isn't saved — point to the wizard, which makes a memory page */}
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10">
+            <div className="bg-stone-900 border border-stone-800 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center gap-4 justify-between">
+              <p className="text-stone-300">{t.eco.next.quickToWizard}</p>
+              <button
+                type="button"
+                onClick={() => {
+                  setMode('wizard');
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+                className="shrink-0 px-5 py-3 rounded-xl text-sm font-bold bg-emerald-600 hover:bg-(--action-hover) text-white flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <MapIcon className="w-4 h-4" aria-hidden="true" />
+                {t.eco.next.quickToWizardCta}
+              </button>
+            </div>
+          </div>
+        </>
       )}
     </>
   );

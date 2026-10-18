@@ -7,6 +7,8 @@ import {
 } from '@/data/curatedPartners';
 import { usePartners } from '@/context/PartnersContext';
 import { useAccounts } from '@/lib/accounts';
+import { normalizePartnerType } from '@/data/partnerGroups';
+import { ensurePartnerIdentity } from '@/lib/identity';
 import { useSessionState } from '@/context/SessionStateContext';
 import type { PartnerProfile } from '@/lib/schemas';
 import type { StreamResultMeta } from '@/lib/streamProtocol';
@@ -325,7 +327,7 @@ export function PartnerPlatform({
       badgeTitle: generatedResult.gamifiedMission?.badgeTitle || 'Ecosystem Steward',
       isNewlyPublished: true,
       // place it on the map / trip planner using the region from sign-up
-      ...(account ? { regionId: account.regionId, area: account.area } : {})
+      ...(account ? { regionId: account.regionId, area: account.area, partnerType: normalizePartnerType(account.profile?.type) } : {})
     };
 
     setPublishing(true);
@@ -337,6 +339,7 @@ export function PartnerPlatform({
       return;
     }
     if (account && account.publishedPartnerId !== listingId) savePartner({ ...account, publishedPartnerId: listingId });
+    void ensurePartnerIdentity(true); // the partner network now knows this listing
     setLastPublishedPartner(newPartner);
     setPublishedSuccess(true);
   };

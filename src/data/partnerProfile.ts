@@ -4,27 +4,22 @@
  * A. business type · B. products/services · C. discount · D. AI support wanted · E. digital status
  */
 
-export type BusinessType = 'Destination' | 'Accommodation' | 'Culinary' | 'Activity' | 'LocalProducts' | 'Transport';
+import { getPartnerType, normalizePartnerType, type PartnerTypeId } from '@/data/partnerGroups';
 
-/** Sub-types offered once the main type is chosen. */
-export const BUSINESS_SUBTYPES: Record<BusinessType, string[]> = {
-  Destination: ['Desa Wisata', 'Nature site', 'Temple / cultural site', 'Beach', 'Waterfall', 'Rice terraces'],
-  Accommodation: ['Homestay', 'Villa', 'Eco-lodge', 'Guesthouse', 'Hotel', 'Glamping'],
-  Culinary: ['Warung', 'Restaurant', 'Café', 'Cooking class', 'Street food', 'Coffee / tea'],
-  Activity: ['Guided tour', 'Water sport', 'Trekking', 'Cycling', 'Workshop / class', 'Wellness'],
-  LocalProducts: ['Handicraft', 'Weaving / textiles', 'Souvenirs', 'Farm products', 'Art gallery'],
-  Transport: ['Driver / car', 'Scooter rental', 'Boat', 'Shuttle']
-};
+/** A partner's type is one of the 10 KOSSI partner groups' types (or an ecosystem enabler). */
+export type BusinessType = PartnerTypeId;
+
+/** Sub-types offered once the type is chosen. */
+export function subtypesFor(type: string | undefined): string[] {
+  return getPartnerType(type)?.subtypes ?? [];
+}
 
 /** Product/service suggestions to tap (partners can also type their own). */
-export const PRODUCT_SUGGESTIONS: Record<BusinessType, string[]> = {
-  Destination: ['Entrance ticket', 'Guided village walk', 'Cultural performance', 'Photo spot', 'Family package'],
-  Accommodation: ['Family room', 'Breakfast included', 'Airport pickup', 'Long-stay discount', 'Cooking with host'],
-  Culinary: ['Set menu', 'Family platter', 'Cooking class', 'Vegetarian menu', 'Takeaway'],
-  Activity: ['Half-day trip', 'Full-day trip', 'Private group', 'Kids session', 'Equipment rental'],
-  LocalProducts: ['Workshop', 'Custom order', 'Gift set', 'Shipping', 'Wholesale'],
-  Transport: ['Airport transfer', 'Full-day driver', 'Hourly rental', 'Island hopping']
-};
+export function productsFor(type: string | undefined): string[] {
+  return getPartnerType(type)?.products ?? [];
+}
+
+export { normalizePartnerType };
 
 export const FACILITIES = ['Kids welcome', 'Wheelchair access', 'Halal options', 'Vegetarian options', 'English-speaking staff', 'Parking'];
 

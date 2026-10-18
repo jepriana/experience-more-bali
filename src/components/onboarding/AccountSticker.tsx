@@ -21,7 +21,7 @@ export function useAccountSticker(kind: StickerKind): StickerContent | null {
 }
 
 /** Shown once, right after sign-up: the sticker "pops" in with download + continue. */
-export function StickerReveal({ kind, onContinue }: { kind: StickerKind; onContinue: () => void }) {
+export function StickerReveal({ kind, onContinue, continueLabel }: { kind: StickerKind; onContinue: () => void; continueLabel?: string }) {
   const { t } = useLanguage();
   const sticker = useAccountSticker(kind);
   if (!sticker) return null;
@@ -46,7 +46,7 @@ export function StickerReveal({ kind, onContinue }: { kind: StickerKind; onConti
               onClick={onContinue}
               className="px-5 py-3 rounded-xl font-bold text-sm bg-emerald-500 hover:bg-(--action-hover) text-white shadow-lg flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-[0.99]"
             >
-              <span>{kind === 'traveler' ? t.sticker.continueTraveler : t.sticker.continuePartner}</span>
+              <span>{continueLabel ?? (kind === 'traveler' ? t.sticker.continueTraveler : t.sticker.continuePartner)}</span>
               <ArrowRight className="w-4 h-4" />
             </button>
             <button

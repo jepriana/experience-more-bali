@@ -50,7 +50,8 @@ export function MerchDesigner({
   customer,
   title,
   subtitle,
-  qrDesc
+  qrDesc = '',
+  qrOption = true
 }: {
   sticker: StickerContent;
   /** where the QR patch points; null = no patch possible yet (e.g. no trip planned) */
@@ -59,7 +60,9 @@ export function MerchDesigner({
   customer: { name: string; contact: string };
   title: string;
   subtitle: string;
-  qrDesc: string;
+  qrDesc?: string;
+  /** false = no QR patch at all (travelers' family QR is never printed on gear) */
+  qrOption?: boolean;
 }) {
   const { t } = useLanguage();
   const m = t.merch;
@@ -86,7 +89,7 @@ export function MerchDesigner({
   const sizes = SIZES[state.product];
   const qty = Object.fromEntries(sizes.map((s) => [s, state.qty[s] ?? 0]));
   const total = Object.values(qty).reduce((a, b) => a + b, 0);
-  const withQr = state.qrPatch && !!qrUrl;
+  const withQr = qrOption && state.qrPatch && !!qrUrl;
   const sizeLabel = (s: string) => (s === 'one' ? m.oneSize : s);
 
   const set = (patch: Partial<MerchState>) => setState((s) => ({ ...s, ...patch }));
@@ -97,7 +100,7 @@ export function MerchDesigner({
 
   const heading = `${m.products[state.product]} · ${m.colours[state.colour]}`;
   const qtyLines = sizes.filter((s) => qty[s] > 0).map((s) => `${sizeLabel(s)} × ${qty[s]}`);
-  const orderLines = [...qtyLines, `${m.qrPatch}: ${withQr ? m.yes : m.no}`];
+  const orderLines = qrOption ? [...qtyLines, `${m.qrPatch}: ${withQr ? m.yes : m.no}`] : qtyLines;
 
   const message = [
     m.orderGreeting,
@@ -106,7 +109,7 @@ export function MerchDesigner({
     '',
     `${m.orderName}: ${customer.name}`,
     `${m.orderContact}: ${customer.contact}`,
-    ...(qrUrl ? [`${m.orderPrintFile}: ${qrUrl}`] : []),
+    ...(qrOption && qrUrl ? [`${m.orderPrintFile}: ${qrUrl}`] : []),
     '',
     m.orderThanks
   ].join('\n');
@@ -212,6 +215,7 @@ export function MerchDesigner({
           </div>
         </Panel>
 
+        {qrOption && (
         <button
           onClick={() => qrUrl && set({ qrPatch: !state.qrPatch })}
           disabled={!qrUrl}
@@ -234,6 +238,7 @@ export function MerchDesigner({
           </span>
           {withQr && qrUrl && <QrImage value={qrUrl} className="w-16 h-16 shrink-0" />}
         </button>
+        )}
 
         <div className="bg-stone-900 border border-stone-800 rounded-2xl p-4 space-y-3">
           <div className="flex items-center justify-between text-sm">

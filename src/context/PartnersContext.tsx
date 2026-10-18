@@ -3,6 +3,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useSyncExternalStore } from 'react';
 import { CuratedPartner, CURATED_BALI_PARTNERS } from '@/data/curatedPartners';
 import { defaultRecord, toPublic, type PublicStatus } from '@/lib/verification';
+import { getPartnerType } from '@/data/partnerGroups';
 
 /**
  * The partner directory every page uses: built-in curated partners + partners published
@@ -123,7 +124,9 @@ export function PartnersProvider({ children }: { children: React.ReactNode }) {
 
   // Removed partners are hidden from travelers
   const partners = useMemo(() => {
-    const visible = (p: CuratedPartner) => directory.statuses[p.id]?.status !== 'removed';
+    // hidden by the KOSSI team, or a partner type that serves partners rather than travelers
+    const visible = (p: CuratedPartner) =>
+      directory.statuses[p.id]?.status !== 'removed' && (!p.partnerType || getPartnerType(p.partnerType)?.travelerFacing !== false);
     return [...directory.customs, ...CURATED_BALI_PARTNERS.filter((p) => !customIds.has(p.id))].filter(visible);
   }, [directory, customIds]);
 

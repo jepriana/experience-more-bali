@@ -21,6 +21,7 @@ import type { CuratedPartner, TravelCategory } from '@/data/curatedPartners';
 import { nearbyAcrossBorder, partnerRegionId, partnerTravelCategories } from '@/lib/tripPlanning';
 import { BaliMap } from '@/components/trip/BaliMap';
 import type { TripState } from '@/components/trip/useTrip';
+import { ClusterOffers } from '@/components/trip/ClusterOffers';
 
 // ───────── Stepper ─────────
 
@@ -303,6 +304,8 @@ export function StepBasket({ trip }: { trip: TripState }) {
           </div>
         </section>
       ))}
+
+      <ClusterOffers trip={trip} />
 
       {(nearby.length > 0 || extras.length > 0) && (
         <section className="space-y-2 pt-2">
